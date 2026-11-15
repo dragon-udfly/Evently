@@ -28,3 +28,13 @@ class RegisterIn(BaseModel):
         return v
 
 
+class VenueIn(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    location: str = Field(min_length=2, max_length=200)
+    capacity: int = Field(gt=0, le=100000)
+    description: str = ""
+    image_url: str = ""
+    hourly_rate: float = Field(ge=0)
+    open_for_hire: bool = False
+
+
