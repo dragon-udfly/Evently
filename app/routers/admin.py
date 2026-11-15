@@ -123,3 +123,47 @@ def _parse_event(title, category, venue_id, start, end, description, names, pric
             for n, p, q in zip(names, prices, qtys) if n.strip()]
     return EventIn(title=title, category=category, venue_id=venue_id, start=start, end=end,
                    description=description, categories=cats)
+
+
+@router.post("/events", dependencies=CSRF)
+@router.post("/events/{eid}", dependencies=CSRF)
+def event_save(request: Request, eid: int | None = None, title: str = Form(""), category: str = Form("Other"),
+               venue_id: str = Form(""), start: str = Form(""), end: str = Form(""), description: str = Form(""),
+               cat_name: list[str] = Form([]), cat_price: list[str] = Form([]), cat_qty: list[str] = Form([]),
+               action: str = Form("draft"), user=Depends(admin_only), db: Session = Depends(get_db)):
+    ev = db.get(Event, eid) if eid else None
+    if eid and ev is None:
+        raise HTTPException(404, "Event not found")
+    locked = bool(ev) and db.scalar(select(func.count(Booking.id)).where(Booking.event_id == eid)) > 0
+    try:
+        if locked:  # bookings exist: ticket categories are frozen
+            cat_name = [c.name for c in ev.categories]
+            cat_price = [str(c.price) for c in ev.categories]
+            cat_qty = [str(c.quantity) for c in ev.categories]
+        data = _parse_event(title, category, venue_id, start, end, description, cat_name, cat_price, cat_qty)
+    except ValidationError as e:
+        flash(request, first_error(e), "danger")
+        return go(f"/admin/events/{eid}/edit" if eid else "/admin/events/new")
+    if ev is not None and ev.status == "cancelled":
+        flash(request, "A cancelled event cannot be edited", "danger")
+        return go("/admin/events")
+    # VenueAgent decides whether the slot and ticket total are acceptable (rules V1-V3)
+    reply = ask(db, f"admin:{user.id}", "VenueAgent", "check_slot", venue_id=data.venue_id,
+                start=data.start.isoformat(), end=data.end.isoformat(),
+                total_tickets=sum(c.quantity for c in data.categories), event_id=eid)
+    db.commit()  # keeps the message log even when refused
+    if reply.performative != "AGREE":
+        flash(request, "VenueAgent refused: " + reply.content.get("reason", "slot unavailable"), "danger")
+        return go(f"/admin/events/{eid}/edit" if eid else "/admin/events/new")
+    if ev is None:
+        ev = Event()
+    for k in ("title", "category", "venue_id", "start", "end", "description"):
+        setattr(ev, k, getattr(data, k))
+    if ev.status != "published":
+        ev.status = "published" if action == "publish" else "draft"
+    if not locked:
+        ev.categories = [TicketCategory(name=c.name, price=c.price, quantity=c.quantity) for c in data.categories]
+    db.add(ev)
+    db.commit()
+    flash(request, f"Event saved as {ev.status}", "success")
+    return go("/admin/events")
