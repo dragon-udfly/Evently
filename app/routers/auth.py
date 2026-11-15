@@ -12,6 +12,32 @@ from ..web import go, render
 router = APIRouter()
 
 
+def _start_session(request: Request, user: User):
+    request.session.clear()  # new session id on login (prevents fixation)
+    request.session["user_id"] = user.id
+
+
 @router.get("/register")
 def register_page(request: Request, user=Depends(get_current_user)):
     return render(request, "register.html", user)
+
+
+@router.post("/register", dependencies=[Depends(csrf_protect)])
+def register(request: Request, name: str = Form(""), email: str = Form(""), password: str = Form(""),
+             db: Session = Depends(get_db)):
+    try:
+        data = RegisterIn(name=name, email=email, password=password)
+    except ValidationError as e:
+        flash(request, first_error(e), "danger")
+        return go("/register")
+    if db.scalar(select(User).where(User.email == data.email)):
+        flash(request, "That email is already registered", "danger")
+        return go("/register")
+    user = User(name=data.name, email=data.email, password_hash=hash_password(data.password), role="attendee")
+    db.add(user)
+    db.commit()
+    _start_session(request, user)
+    flash(request, "Welcome to EventSphere!", "success")
+    return go("/")
+
+
