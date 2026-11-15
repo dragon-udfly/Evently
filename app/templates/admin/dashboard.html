@@ -25,6 +25,10 @@
 <td><a href="/admin?conv={{ m.conversation_id }}"><code>{{ m.conversation_id[:8] }}</code></a></td><td>{{ m.sender }}</td><td>{{ m.receiver }}</td>
 <td><span class="badge text-bg-{{ {'REQUEST':'primary','AGREE':'success','REFUSE':'danger','PROPOSE':'info','INFORM':'secondary','FAILURE':'dark'}[m.performative] }}">{{ m.performative }}</span></td>
 <td class="msg">{{ m.content }}</td></tr>{% endfor %}</tbody></table></div>
+
+<h2 class="h5 mt-3">Agent beliefs (persistent state)</h2>
+<div class="table-responsive"><table class="table table-sm small"><thead><tr><th>Agent</th><th>Belief</th><th>Value</th></tr></thead>
+<tbody>{% for b in beliefs %}<tr><td>{{ b.agent }}</td><td>{{ b.key[:40] }}</td><td>{{ b.value }}</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
