@@ -4,8 +4,10 @@ Every message (requests, replies, broadcasts) is written to agent_messages BEFOR
 so one user action can be traced across agents by its conversation_id.
 """
 import json
+from typing import TYPE_CHECKING
 from sqlalchemy.orm import Session
-from app.agents.base import Agent
+if TYPE_CHECKING:
+    from app.agents.base import Agent
 from ..models import AgentMessage
 from .messages import Message
 
