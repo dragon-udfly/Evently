@@ -89,3 +89,17 @@ class Ticket(Base):
     booking: Mapped[Booking] = relationship(back_populates="tickets")
 
 
+class Waitlist(Base):
+    __tablename__ = "waitlist"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), index=True)
+    category_id: Mapped[int] = mapped_column(ForeignKey("ticket_categories.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    quantity: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(20), default="waiting")  # waiting | held | claimed | expired | left
+    hold_expires: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+    event: Mapped[Event] = relationship()
+    category: Mapped[TicketCategory] = relationship()
+
+
