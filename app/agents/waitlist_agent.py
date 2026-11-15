@@ -84,4 +84,26 @@ class WaitlistAgent(Agent):
         db.execute(update(TicketCategory).where(TicketCategory.id == w.category_id)
                    .values(sold=TicketCategory.sold - w.quantity))
 
-    
+    def _offer(self, db: Session, category_id: int, conv: str):
+        cat = db.get(TicketCategory, category_id)
+        db.refresh(cat)
+        ev = db.get(Event, cat.event_id)
+        if ev.status != "published" or ev.start <= now():
+            return
+        queue = db.scalars(select(Waitlist).where(Waitlist.category_id == category_id, Waitlist.status == "waiting")
+                           .order_by(Waitlist.created_at, Waitlist.id)).all()
+        for w in queue:
+            if cat.left <= 0:
+                break
+            if w.quantity > cat.left:
+                continue
+            res = db.execute(update(TicketCategory)
+                             .where(TicketCategory.id == cat.id, TicketCategory.sold + w.quantity <= TicketCategory.quantity)
+                             .values(sold=TicketCategory.sold + w.quantity))
+            db.refresh(cat)
+            if res.rowcount:
+                w.status = "held"
+                w.hold_expires = now() + timedelta(minutes=settings.hold_minutes)
+                self.bump(db, "holds_offered")
+                self.broadcast(db, conv, "hold_offered", user_id=w.user_id, event=ev.title, quantity=w.quantity,
+                               minutes=settings.hold_minutes, event_id=ev.id)
