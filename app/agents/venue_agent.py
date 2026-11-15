@@ -156,4 +156,19 @@ class VenueAgent(Agent):
         return self.reply(msg, "INFORM", decision="escalate", hire_id=hire.id, price=price, pricing=note,
                           reason=f"Needs admin approval ({why})")
 
-    
+    def h_decide_hire(self, db: Session, msg: Message) -> Message:
+        c = msg.content
+        hire = db.get(HireRequest, int(c["hire_id"]))
+        if hire is None or hire.status != "pending":
+            return self.reply(msg, "REFUSE", reason="Hire request is not pending")
+        if c["decision"] == "approve":
+            clash = self.conflicts(db, hire.venue_id, hire.start, hire.end, exclude_hire_id=hire.id)
+            if clash:
+                return self.reply(msg, "REFUSE", reason="Cannot approve, clash: " + "; ".join(clash))
+            hire.status = "confirmed"
+        else:
+            hire.status = "rejected"
+            hire.note = c.get("note", "")[:300]
+        self.broadcast(db, msg.conversation_id, "hire_decided", hire_id=hire.id, user_id=hire.user_id,
+                       venue=hire.venue.name, decision=hire.status, note=hire.note)
+        return self.reply(msg, "AGREE", status=hire.status)
