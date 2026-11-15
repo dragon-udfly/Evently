@@ -129,3 +129,16 @@ class Notification(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
 
 
+class AgentMessage(Base):
+    """Every message on the bus is stored here (traceability)."""
+    __tablename__ = "agent_messages"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    message_id: Mapped[str] = mapped_column(String(40))
+    conversation_id: Mapped[str] = mapped_column(String(40), index=True)
+    sender: Mapped[str] = mapped_column(String(60))
+    receiver: Mapped[str] = mapped_column(String(60))
+    performative: Mapped[str] = mapped_column(String(20))
+    content: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+
+
