@@ -42,3 +42,10 @@ def send(db, receiver, action, sender="test", **content):
 def book(db, user, ev, qty=1, cat=None, **extra):
     cat = cat or ev.categories[0]
     return send(db, "BookingAgent", "book", user_id=user.id, event_id=ev.id, category_id=cat.id, quantity=qty, **extra)
+
+
+def next_slot(weekday, hour, min_days=3):
+    d = now().replace(hour=hour, minute=0, second=0) + timedelta(days=min_days)
+    while d.weekday() != weekday:
+        d += timedelta(days=1)
+    return d
