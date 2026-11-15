@@ -9,6 +9,38 @@
   <link href="/static/app.css" rel="stylesheet">
 </head>
 <body>
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="/">EventSphere</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"><span class="navbar-toggler-icon"></span></button>
+    <div id="nav" class="collapse navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="/">Events</a></li>
+        {% if user %}
+        <li class="nav-item"><a class="nav-link" href="/bookings">My bookings</a></li>
+        <li class="nav-item"><a class="nav-link" href="/hire">Hire a venue</a></li>
+        <li class="nav-item"><a class="nav-link" href="/notifications">Notifications</a></li>
+        {% if user.role in ('staff','admin') %}<li class="nav-item"><a class="nav-link" href="/staff/scanner">Scanner</a></li>{% endif %}
+        {% if user.role == 'admin' %}
+        <li class="nav-item"><a class="nav-link" href="/admin">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/venues">Venues</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/events">Manage events</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/hires">Hire requests</a></li>
+        {% endif %}
+        {% endif %}
+      </ul>
+      <div class="d-flex align-items-center gap-2 text-light">
+        {% if user %}
+        <span class="small">{{ user.name }} ({{ user.role }})</span>
+        <form method="post" action="/logout" class="m-0"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-sm btn-outline-light">Sign out</button></form>
+        {% else %}
+        <a class="btn btn-sm btn-outline-light" href="/login">Sign in</a>
+        <a class="btn btn-sm btn-light" href="/register">Register</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
 <main class="container py-3">
   {% block content %}{% endblock %}
 </main>
