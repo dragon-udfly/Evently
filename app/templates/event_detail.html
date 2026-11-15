@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}{{ ev.title }}{% endblock %}
+{% block content %}
+<span class="badge text-bg-secondary">{{ ev.category }}</span>
+{% if ev.status != 'published' %}<span class="badge text-bg-warning">{{ ev.status }}</span>{% endif %}
+<h1 class="h3 mt-2">{{ ev.title }}</h1>
+{% endblock %}
