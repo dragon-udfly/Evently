@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 
 class Settings:
-    database_url = os.getenv("DATABASE_URL", "sqlite:///./eventsphere.db")
+    database_url = os.getenv("DATABASE_URL", "sqlite:///./evently.db")
     secret_key = os.getenv("SECRET_KEY", "dev-only-change-me")
     timezone = os.getenv("APP_TIMEZONE", "Asia/Colombo")
     https_only = os.getenv("HTTPS_ONLY", "0") == "1"

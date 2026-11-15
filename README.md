@@ -1,4 +1,4 @@
-# 🎟️ EventSphere — Multi-Agent Venue Booking & Ticketing Platform
+# 🎟️ Evently — Multi-Agent Venue Booking & Ticketing Platform
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -7,13 +7,13 @@
 [![Pytest](https://img.shields.io/badge/Tests-Pytest%20Passing-success.svg?logo=pytest&logoColor=white)](https://pytest.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)](LICENSE)
 
-> **EventSphere** is an enterprise-grade venue booking, event management, and ticketing platform powered by a **decentralized Multi-Agent System (MAS)**. Built with FastAPI, SQLAlchemy, and Bootstrap 5, all business logic, booking approvals, venue hire negotiations, and waitlist allocations are handled by **5 autonomous agents** communicating through standard FIPA-ACL JSON messages over a persistent message bus.
+> **Evently** is an enterprise-grade venue booking, event management, and ticketing platform powered by a **decentralized Multi-Agent System (MAS)**. Built with FastAPI, SQLAlchemy, and Bootstrap 5, all business logic, booking approvals, venue hire negotiations, and waitlist allocations are handled by **5 autonomous agents** communicating through standard FIPA-ACL JSON messages over a persistent message bus.
 
 ---
 
 ## 🏛️ System Architecture & Autonomous Agents
 
-EventSphere decouples core domain operations into five specialized, autonomous agents. Every decision, transition, and belief state update is logged for complete auditability.
+Evently decouples core domain operations into five specialized, autonomous agents. Every decision, transition, and belief state update is logged for complete auditability.
 
 ```mermaid
 flowchart TD
@@ -55,8 +55,8 @@ flowchart TD
 
 1. **Clone the repository and enter the project folder:**
    ```bash
-   git clone https://github.com/your-username/EventSphere.git
-   cd EventSphere
+   git clone https://github.com/your-username/Evently.git
+   cd Evently
    ```
 
 2. **Create and activate a virtual environment:**
@@ -96,7 +96,7 @@ flowchart TD
    * **Interactive API Documentation:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
    * **Alternative API Docs:** [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
-> 💡 **Tip:** On initial launch with `SEED_DEMO=1`, the SQLite database (`eventsphere.db`) is automatically initialized and populated with sample venues, events, ticket categories, and demo user accounts.
+> 💡 **Tip:** On initial launch with `SEED_DEMO=1`, the SQLite database (`evently.db`) is automatically initialized and populated with sample venues, events, ticket categories, and demo user accounts.
 
 ---
 
@@ -106,7 +106,7 @@ Configure application settings by modifying `.env` or exporting system environme
 
 | Variable | Description | Default | Production Recommendation |
 |:---|:---|:---:|:---|
-| `DATABASE_URL` | SQLAlchemy connection string (SQLite or PostgreSQL) | `sqlite:///./eventsphere.db` | PostgreSQL connection string |
+| `DATABASE_URL` | SQLAlchemy connection string (SQLite or PostgreSQL) | `sqlite:///./evently.db` | PostgreSQL connection string |
 | `SECRET_KEY` | Cryptographic secret for signing session cookies | `dev-only-change-me` | 64+ char random hex string |
 | `APP_TIMEZONE` | Timezone for event scheduling and display | `Asia/Colombo` | Local server / target timezone |
 | `HTTPS_ONLY` | Enforces `Secure` flag on HTTP cookies (`1` to enable) | `0` | Set to `1` behind SSL/TLS |
@@ -123,9 +123,9 @@ The database comes pre-seeded with three role-delineated test accounts (password
 
 | Role | Email Address | Password | Permissions & Available Features |
 |:---|:---|:---:|:---|
-| 👑 **Admin** | `admin@eventsphere.test` | `Admin#12345` | • Full administrative dashboard & analytics<br/>• Create, edit, publish & cancel events<br/>• Manage venues & review venue hire applications<br/>• Trigger manual waitlist hold sweeps |
-| 🛡️ **Gate Staff** | `staff@eventsphere.test` | `Staff#12345` | • Live QR code camera scanner (`/staff/scanner`)<br/>• Manual ticket admission verification<br/>• Real-time ticket validation with audio/vibration feedback |
-| 🎟️ **Attendee** | `attendee@eventsphere.test` | `Attendee#12345` | • Browse published events with filters<br/>• Book tickets with real-time seat hold timers<br/>• Join event waitlists with automatic seat allocation<br/>• View digital tickets with dynamic QR codes<br/>• Submit venue hire requests |
+| 👑 **Admin** | `admin@evently.test` | `Admin#12345` | • Full administrative dashboard & analytics<br/>• Create, edit, publish & cancel events<br/>• Manage venues & review venue hire applications<br/>• Trigger manual waitlist hold sweeps |
+| 🛡️ **Gate Staff** | `staff@evently.test` | `Staff#12345` | • Live QR code camera scanner (`/staff/scanner`)<br/>• Manual ticket admission verification<br/>• Real-time ticket validation with audio/vibration feedback |
+| 🎟️ **Attendee** | `attendee@evently.test` | `Attendee#12345` | • Browse published events with filters<br/>• Book tickets with real-time seat hold timers<br/>• Join event waitlists with automatic seat allocation<br/>• View digital tickets with dynamic QR codes<br/>• Submit venue hire requests |
 
 ---
 
@@ -156,7 +156,7 @@ pytest tests/test_agents.py -v
 
 ## 📡 HTTP Agent Inboxes (External Agent Integration)
 
-EventSphere exposes authenticated REST endpoints allowing external AI agents or services to communicate directly with internal agents via FIPA-ACL messages:
+Evently exposes authenticated REST endpoints allowing external AI agents or services to communicate directly with internal agents via FIPA-ACL messages:
 
 ```bash
 # Example: Sending a ticket verification REQUEST to TicketAgent
@@ -178,7 +178,7 @@ curl -X POST "http://127.0.0.1:8000/api/agents/TicketAgent/inbox" \
 
 ## 🚢 Production Deployment (Render)
 
-EventSphere includes ready-to-deploy configuration for cloud hosting on [Render](https://render.com):
+Evently includes ready-to-deploy configuration for cloud hosting on [Render](https://render.com):
 
 1. **Deploy with Blueprint (`render.yaml`):**
    * Link your repository in Render Dashboard.
@@ -196,7 +196,7 @@ EventSphere includes ready-to-deploy configuration for cloud hosting on [Render]
 ## 📁 Project Directory Layout
 
 ```text
-EventSphere/
+Evently/
 ├── app/
 │   ├── agents/               # Autonomous agent modules
 │   │   ├── base.py           # Agent base class with persistent belief states

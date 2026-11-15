@@ -6,7 +6,7 @@ from ..database import SessionLocal
 from .messages import Message
 from .registry import bus
 
-log = logging.getLogger("eventsphere.scheduler")
+log = logging.getLogger("evently.scheduler")
 
 
 def run_sweep():

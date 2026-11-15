@@ -37,7 +37,7 @@ def register(request: Request, name: str = Form(""), email: str = Form(""), pass
     db.add(user)
     db.commit()
     _start_session(request, user)
-    flash(request, "Welcome to EventSphere!", "success")
+    flash(request, "Welcome to Evently!", "success")
     return go("/")
 
 

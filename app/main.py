@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
         task.cancel()
 
 
-app = FastAPI(title="EventSphere", lifespan=lifespan)
+app = FastAPI(title="Evently", lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key, https_only=settings.https_only,
                    same_site="lax", max_age=60 * 60 * 24)
 app.mount("/static", StaticFiles(directory=str(BASE / "static")), name="static")
