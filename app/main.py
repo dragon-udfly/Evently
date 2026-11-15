@@ -15,7 +15,18 @@ from .seed import seed
 from .web import BASE, peek_user, render
 
 
-app = FastAPI(title="EventSphere")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(engine)
+    if settings.seed_demo:
+        seed()
+    task = asyncio.create_task(sweep_loop()) if settings.enable_scheduler else None
+    yield
+    if task:
+        task.cancel()
+
+
+app = FastAPI(title="EventSphere", lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key, https_only=settings.https_only,
                    same_site="lax", max_age=60 * 60 * 24)
 app.mount("/static", StaticFiles(directory=str(BASE / "static")), name="static")
