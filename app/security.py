@@ -31,3 +31,9 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User | 
     return db.get(User, uid) if uid else None
 
 
+def login_required(user: User | None = Depends(get_current_user)) -> User:
+    if user is None:
+        raise HTTPException(401, "Please sign in")
+    return user
+
+
