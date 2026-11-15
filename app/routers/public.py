@@ -91,3 +91,11 @@ def leave_waitlist(wid: int, request: Request, user=Depends(login_required), db:
     db.commit()
     flash(request, "Left the waitlist" if reply.performative == "AGREE" else reply.content["reason"], "info")
     return go(f"/events/{w.event_id}" if w else "/")
+
+
+@router.get("/bookings")
+def my_bookings(request: Request, user=Depends(login_required), db: Session = Depends(get_db)):
+    rows = db.scalars(select(Booking).where(Booking.user_id == user.id, Booking.status != "failed")
+                      .order_by(Booking.id.desc())).all()
+    info = {b.id: (refund_pct(b.event), b.event.start > now()) for b in rows}
+    return render(request, "bookings.html", user, bookings=rows, info=info, policy=REFUND_POLICY)
