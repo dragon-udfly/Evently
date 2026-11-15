@@ -3,4 +3,7 @@
 <span class="badge text-bg-secondary">{{ ev.category }}</span>
 {% if ev.status != 'published' %}<span class="badge text-bg-warning">{{ ev.status }}</span>{% endif %}
 <h1 class="h3 mt-2">{{ ev.title }}</h1>
+{% if ev.venue.image_url %}<img src="{{ ev.venue.image_url }}" class="img-fluid rounded mb-2" alt="{{ ev.venue.name }}">{% endif %}
+<p>{{ ev.start|dt }} &ndash; {{ ev.end.strftime('%H:%M') }}<br><span class="text-muted">{{ ev.venue.name }}, {{ ev.venue.location }}</span></p>
+<p>{{ ev.description }}</p>
 {% endblock %}
