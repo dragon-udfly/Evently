@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from app.models import HireRequest
+from app.models import HireRequest, Notification
 from tests.helpers import make_event, make_user, make_venue, next_slot, send
 
 
@@ -48,4 +48,16 @@ def test_weekend_and_peak_pricing(db):
 	r = send(db, "VenueAgent", "hire_request", user_id=u.id, venue_id=v.id, start=wed_peak.isoformat(),
 			 end=(wed_peak + timedelta(hours=1)).isoformat(), guests=10, purpose="Dinner")
 	assert r.content["price"] == 1150
+
+
+def test_large_group_is_escalated_to_admin_and_admin_can_approve(db):
+	v = make_venue(db, capacity=100)
+	u, admin = make_user(db), make_user(db, "admin")
+	start = next_slot(2, 10)
+	r = send(db, "VenueAgent", "hire_request", user_id=u.id, venue_id=v.id, start=start.isoformat(),
+			 end=(start + timedelta(hours=2)).isoformat(), guests=90, purpose="Conference")
+	assert r.performative == "INFORM" and r.content["decision"] == "escalate"
+	assert db.query(Notification).filter_by(audience="admin").count() == 1
+	d = send(db, "VenueAgent", "decide_hire", hire_id=r.content["hire_id"], decision="approve")
+	assert d.performative == "AGREE" and db.get(HireRequest, r.content["hire_id"]).status == "confirmed"
 
