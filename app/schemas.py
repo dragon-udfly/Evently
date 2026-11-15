@@ -71,3 +71,8 @@ class ScanIn(BaseModel):
     code: str = Field(min_length=1, max_length=100)
     event_id: int
 
+class AgentMessageIn(BaseModel):
+    sender: str = "external"
+    performative: Literal["REQUEST", "AGREE", "REFUSE", "PROPOSE", "INFORM", "FAILURE"] = "REQUEST"
+    content: dict
+    conversation_id: str | None = None
