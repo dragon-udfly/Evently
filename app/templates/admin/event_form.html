@@ -6,5 +6,8 @@
   <div class="col-md-8"><label class="form-label small">Title</label><input class="form-control" name="title" required value="{{ ev.title if ev }}"></div>
   <div class="col-md-4"><label class="form-label small">Category</label><select class="form-select" name="category">{% for c in categories %}<option {{ 'selected' if ev and ev.category == c }}>{{ c }}</option>{% endfor %}</select></div>
   <div class="col-12"><label class="form-label small">Venue</label><select class="form-select" name="venue_id" required>{% for v in venues %}<option value="{{ v.id }}" {{ 'selected' if ev and ev.venue_id == v.id }}>{{ v.name }} (capacity {{ v.capacity }})</option>{% endfor %}</select></div>
+  <div class="col-6"><label class="form-label small">Start</label><input class="form-control" type="datetime-local" name="start" required value="{{ ev.start|dtlocal if ev }}"></div>
+  <div class="col-6"><label class="form-label small">End</label><input class="form-control" type="datetime-local" name="end" required value="{{ ev.end|dtlocal if ev }}"></div>
+  <div class="col-12"><label class="form-label small">Description</label><textarea class="form-control" name="description" rows="3">{{ ev.description if ev }}</textarea></div>
 </form>
 {% endblock %}
