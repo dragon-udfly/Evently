@@ -14,3 +14,10 @@ def make_user(db, role="attendee", email=None):
     db.add(u)
     db.commit()
     return u
+
+
+def make_venue(db, capacity=100, hire=True, rate=1000.0, name="Hall"):
+    v = Venue(name=name, location="Campus", capacity=capacity, hourly_rate=rate, open_for_hire=hire)
+    db.add(v)
+    db.commit()
+    return v
