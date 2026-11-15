@@ -53,4 +53,8 @@ class NotificationAgent(Agent):
         self._add(db, f"Hire request #{c['hire_id']} for {c['venue']} needs approval.", None, "admin")
         self._add(db, f"Hire #{c['hire_id']} of {c['venue']} sent to admin for approval.", c["user_id"])
 
-    
+    def h_hire_decided(self, db: Session, msg: Message):
+        c = msg.content
+        self._add(db, f"Hire #{c['hire_id']} of {c['venue']} was {c['decision']}. {c.get('note', '')}", c["user_id"])
+
+   
