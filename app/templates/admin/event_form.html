@@ -3,5 +3,8 @@
 <h1 class="h3">{{ 'Edit event' if ev else 'New event' }}</h1>
 <form method="post" action="{{ '/admin/events/%d' % ev.id if ev else '/admin/events' }}" class="row g-2">
   <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <div class="col-md-8"><label class="form-label small">Title</label><input class="form-control" name="title" required value="{{ ev.title if ev }}"></div>
+  <div class="col-md-4"><label class="form-label small">Category</label><select class="form-select" name="category">{% for c in categories %}<option {{ 'selected' if ev and ev.category == c }}>{{ c }}</option>{% endfor %}</select></div>
+  <div class="col-12"><label class="form-label small">Venue</label><select class="form-select" name="venue_id" required>{% for v in venues %}<option value="{{ v.id }}" {{ 'selected' if ev and ev.venue_id == v.id }}>{{ v.name }} (capacity {{ v.capacity }})</option>{% endfor %}</select></div>
 </form>
 {% endblock %}
