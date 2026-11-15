@@ -107,3 +107,12 @@ def events(request: Request, user=Depends(admin_only), db: Session = Depends(get
 @router.get("/events/new")
 def event_new(request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
     return render(request, "admin/event_form.html", user, locked=False, **_form_ctx(db))
+
+
+@router.get("/events/{eid}/edit")
+def event_edit(eid: int, request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
+    ev = db.get(Event, eid)
+    if ev is None:
+        raise HTTPException(404, "Event not found")
+    locked = db.scalar(select(func.count(Booking.id)).where(Booking.event_id == eid)) > 0
+    return render(request, "admin/event_form.html", user, locked=locked, **_form_ctx(db, ev))
