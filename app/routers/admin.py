@@ -167,3 +167,21 @@ def event_save(request: Request, eid: int | None = None, title: str = Form(""), 
     db.commit()
     flash(request, f"Event saved as {ev.status}", "success")
     return go("/admin/events")
+
+
+@router.post("/events/{eid}/publish", dependencies=CSRF)
+def event_publish(eid: int, request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
+    ev = db.get(Event, eid)
+    if ev is None or ev.status != "draft":
+        flash(request, "Only a draft can be published", "danger")
+        return go("/admin/events")
+    reply = ask(db, f"admin:{user.id}", "VenueAgent", "check_slot", venue_id=ev.venue_id,
+                start=ev.start.isoformat(), end=ev.end.isoformat(),
+                total_tickets=sum(c.quantity for c in ev.categories), event_id=ev.id)
+    if reply.performative == "AGREE":
+        ev.status = "published"
+        flash(request, "Event published", "success")
+    else:
+        flash(request, "VenueAgent refused: " + reply.content.get("reason", ""), "danger")
+    db.commit()
+    return go("/admin/events")
