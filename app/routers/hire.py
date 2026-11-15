@@ -13,3 +13,7 @@ from ..web import go, render
 router = APIRouter()
 
 
+def _page(request, user, db, result=None, form=None):
+    venues = db.scalars(select(Venue).where(Venue.open_for_hire.is_(True)).order_by(Venue.name)).all()
+    mine = db.scalars(select(HireRequest).where(HireRequest.user_id == user.id).order_by(HireRequest.id.desc())).all()
+    return render(request, "hire.html", user, venues=venues, mine=mine, result=result, form=form or {})
