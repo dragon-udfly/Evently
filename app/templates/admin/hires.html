@@ -4,6 +4,8 @@
 <div class="table-responsive"><table class="table table-sm align-middle"><thead><tr><th>#</th><th>Requester</th><th>Venue</th><th>When</th><th>Guests</th><th>Price</th><th>Status</th><th></th></tr></thead>
 <tbody>{% for h in hires %}<tr><td>{{ h.id }}</td><td>{{ h.user.name }}<br><span class="small text-muted">{{ h.purpose }}</span></td><td>{{ h.venue.name }}</td><td>{{ h.start|dt }}</td><td>{{ h.guests }}</td><td>{{ h.price|money }}</td>
 <td><span class="badge text-bg-{{ {'confirmed':'success','pending':'warning','rejected':'danger'}[h.status] }}">{{ h.status }}</span></td>
-<td></td></tr>
+<td>{% if h.status == 'pending' %}
+  <form class="d-flex gap-1" method="post" action="/admin/hires/{{ h.id }}/approve"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-sm btn-success">Approve</button></form>
+{% endif %}</td></tr>
 {% else %}<tr><td colspan="8" class="text-muted">No requests.</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}
