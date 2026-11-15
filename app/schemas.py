@@ -1,4 +1,3 @@
-"""Pydantic validation for every form / JSON input."""
 import re
 from datetime import datetime
 from typing import Literal
