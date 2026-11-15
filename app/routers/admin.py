@@ -197,3 +197,10 @@ def event_cancel(eid: int, request: Request, user=Depends(admin_only), db: Sessi
     else:
         flash(request, reply.content.get("reason", "Could not cancel"), "danger")
     return go("/admin/events")
+
+
+# ---------------- private hire ----------------
+@router.get("/hires")
+def hires(request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
+    rows = db.scalars(select(HireRequest).order_by(HireRequest.status.desc(), HireRequest.id.desc())).all()
+    return render(request, "admin/hires.html", user, hires=rows)
