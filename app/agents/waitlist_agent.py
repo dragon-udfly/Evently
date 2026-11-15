@@ -57,4 +57,7 @@ class WaitlistAgent(Agent):
             self._offer(db, w.category_id, msg.conversation_id)
         return self.reply(msg, "AGREE")
 
+    def h_seats_freed(self, db: Session, msg: Message) -> None:
+        self._offer(db, int(msg.content["category_id"]), msg.conversation_id)
+
     
