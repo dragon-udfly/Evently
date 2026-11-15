@@ -11,3 +11,11 @@ import pytest  # noqa: E402
 
 from app.database import Base, SessionLocal, engine  # noqa: E402
 from app import models  # noqa: E402,F401
+
+
+@pytest.fixture(autouse=True)
+def db():
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+    with SessionLocal() as session:
+        yield session
