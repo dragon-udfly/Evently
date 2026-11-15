@@ -1,4 +1,5 @@
 {% extends "base.html" %}{% block title %}Scanner{% endblock %}
 {% block content %}
 <h1 class="h3">Gate scanner</h1>
+<select id="event" class="form-select mb-2">{% for e in events %}<option value="{{ e.id }}">{{ e.title }} &ndash; {{ e.start|dt }}</option>{% endfor %}</select>
 {% endblock %}
