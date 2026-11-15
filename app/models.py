@@ -120,3 +120,12 @@ class HireRequest(Base):
     user: Mapped[User] = relationship()
 
 
+class Notification(Base):
+    __tablename__ = "notifications"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    audience: Mapped[str] = mapped_column(String(20), default="user")  # user | admin
+    message: Mapped[str] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+
+
