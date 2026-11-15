@@ -1,2 +1,5 @@
 body { background: #f6f7f9; }
+.qr { width: 100%; max-width: 320px; background: #fff; padding: 8px; border-radius: 8px; }
+#reader { max-width: 420px; }
+.msg { max-width: 420px; word-break: break-all; font-family: monospace; font-size: .75rem; }
 .card { box-shadow: 0 1px 2px rgba(0,0,0,.05); }
