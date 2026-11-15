@@ -2,7 +2,7 @@
 {% block content %}
 <h1 class="h3">Notifications</h1>
 <ul class="list-group">
-{% for n in rows %}<li class="list-group-item"><div>{{ n.message }}</div></li>
+{% for n in rows %}<li class="list-group-item"><div>{{ n.message }}</div><div class="small text-muted">{{ n.created_at|dt }}</div></li>
 {% endfor %}
 </ul>
 {% endblock %}
