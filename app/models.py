@@ -142,3 +142,9 @@ class AgentMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
 
 
+class AgentState(Base):
+    """Persistent beliefs: one row per (agent, key). Survives restarts."""
+    __tablename__ = "agent_state"
+    agent: Mapped[str] = mapped_column(String(60), primary_key=True)
+    key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    value: Mapped[str] = mapped_column(Text, default="null")
