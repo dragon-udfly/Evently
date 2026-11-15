@@ -59,4 +59,11 @@ class EventIn(BaseModel):
             raise ValueError("end must be after start")
         return self
 
+class HireIn(BaseModel):
+    venue_id: int
+    start: datetime
+    end: datetime
+    guests: int = Field(gt=0)
+    purpose: str = Field(min_length=3, max_length=300)
+
 
