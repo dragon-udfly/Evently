@@ -45,3 +45,15 @@ def register(request: Request, name: str = Form(""), email: str = Form(""), pass
 def login_page(request: Request, user=Depends(get_current_user)):
     return render(request, "login.html", user)
 
+
+@router.post("/login", dependencies=[Depends(csrf_protect)])
+def login(request: Request, email: str = Form(""), password: str = Form(""), db: Session = Depends(get_db)):
+    user = db.scalar(select(User).where(User.email == email.strip().lower()))
+    if user is None or not verify_password(password, user.password_hash):
+        flash(request, "Wrong email or password", "danger")
+        return go("/login")
+    _start_session(request, user)
+    return go({"admin": "/admin", "staff": "/staff/scanner"}.get(user.role, "/"))
+
+
+
