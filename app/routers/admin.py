@@ -96,3 +96,9 @@ def venue_save(request: Request, vid: int | None = None, name: str = Form(""), l
 def _form_ctx(db, ev=None, form=None):
     return dict(venues=db.scalars(select(Venue).order_by(Venue.name)).all(), categories=EVENT_CATEGORIES, ev=ev,
                 form=form or {})
+
+
+@router.get("/events")
+def events(request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
+    rows = db.scalars(select(Event).order_by(Event.start.desc())).all()
+    return render(request, "admin/events.html", user, events=rows)
