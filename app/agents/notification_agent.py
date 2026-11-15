@@ -35,4 +35,9 @@ class NotificationAgent(Agent):
         if "user_id" in c:
             self._add(db, f"{c['event']} was cancelled. Full refund of {c['refund']:.2f} issued.", c["user_id"])
 
+    def h_hold_offered(self, db: Session, msg: Message):
+        c = msg.content
+        self._add(db, f"Seats available! {c['quantity']} ticket(s) for {c['event']} held for you for "
+                      f"{c['minutes']} minutes. Open the event page to claim.", c["user_id"])
+
    
