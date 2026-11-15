@@ -8,6 +8,10 @@
     <div><strong>{{ b.event.title }}</strong> <span class="badge text-bg-{{ 'success' if b.status == 'confirmed' else 'secondary' }}">{{ b.status }}</span><br>
       <span class="small">{{ b.event.start|dt }} &middot; {{ b.quantity }} &times; {{ b.category.name }} &middot; {{ b.total|money }} &middot; ref {{ b.payment_ref }}</span>
       {% if b.status == 'cancelled' %}<br><span class="small">Refunded {{ b.refund_amount|money }}</span>{% endif %}</div>
+    {% if b.status == 'confirmed' and info[b.id][1] %}
+    <form method="post" action="/bookings/{{ b.id }}/cancel" onsubmit="return confirm('Cancel? Refund would be {{ info[b.id][0] }}%')">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-outline-danger btn-sm">Cancel ({{ info[b.id][0] }}% refund)</button></form>
+    {% endif %}
   </div>
 </div></div>
 {% endfor %}
