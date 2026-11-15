@@ -29,4 +29,12 @@
     var v = document.getElementById('manual').value.trim();
     if (v) { last = { code: null, at: 0 }; check(v); }
   };
+  var scanner = null;
+  document.getElementById('camBtn').onclick = function () {
+    if (scanner) { scanner.stop().then(function () { scanner = null; }); this.textContent = 'Start camera'; return; }
+    scanner = new Html5Qrcode('reader');
+    scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: 220 }, check)
+      .catch(function () { show(false, 'Camera unavailable - use manual entry'); scanner = null; });
+    this.textContent = 'Stop camera';
+  };
 })();
