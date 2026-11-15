@@ -33,4 +33,10 @@ class TicketAgent(Agent):
         self.bump(db, "tickets_issued", len(codes))
         return self.reply(msg, "AGREE", codes=codes)
 
+    def h_void(self, db: Session, msg: Message) -> Message:
+        res = db.execute(update(Ticket).where(Ticket.booking_id == int(msg.content["booking_id"]),
+                                              Ticket.status == "valid").values(status="cancelled"))
+        self.bump(db, "tickets_voided", res.rowcount or 0)
+        return self.reply(msg, "AGREE", voided=res.rowcount or 0)
+
     
