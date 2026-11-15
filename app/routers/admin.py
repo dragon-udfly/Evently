@@ -185,3 +185,15 @@ def event_publish(eid: int, request: Request, user=Depends(admin_only), db: Sess
         flash(request, "VenueAgent refused: " + reply.content.get("reason", ""), "danger")
     db.commit()
     return go("/admin/events")
+
+
+@router.post("/events/{eid}/cancel", dependencies=CSRF)
+def event_cancel(eid: int, request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
+    reply = ask(db, f"admin:{user.id}", "BookingAgent", "cancel_event", event_id=eid)
+    db.commit()
+    if reply.performative == "AGREE":
+        flash(request, f"Event cancelled. {reply.content['refunded_bookings']} booking(s) refunded "
+                       f"({reply.content['total_refunded']:.2f}).", "success")
+    else:
+        flash(request, reply.content.get("reason", "Could not cancel"), "danger")
+    return go("/admin/events")
