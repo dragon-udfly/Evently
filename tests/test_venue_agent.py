@@ -61,3 +61,18 @@ def test_large_group_is_escalated_to_admin_and_admin_can_approve(db):
 	d = send(db, "VenueAgent", "decide_hire", hire_id=r.content["hire_id"], decision="approve")
 	assert d.performative == "AGREE" and db.get(HireRequest, r.content["hire_id"]).status == "confirmed"
 
+
+def test_clash_returns_propose_with_usable_alternatives(db):
+	v1 = make_venue(db, name="A")
+	make_venue(db, name="B")
+	u = make_user(db)
+	start = next_slot(2, 10)
+	args = dict(user_id=u.id, venue_id=v1.id, start=start.isoformat(),
+				end=(start + timedelta(hours=2)).isoformat(), guests=10, purpose="Meeting")
+	assert send(db, "VenueAgent", "hire_request", **args).performative == "AGREE"
+	r = send(db, "VenueAgent", "hire_request", **args)
+	assert r.performative == "PROPOSE" and r.content["reason"]
+	alts = r.content["alternatives"]
+	assert alts and {"venue_id", "start", "end", "price"} <= set(alts[0])
+	assert any(a["kind"] == "other venue" for a in alts) and any(a["kind"] == "other time" for a in alts)
+
