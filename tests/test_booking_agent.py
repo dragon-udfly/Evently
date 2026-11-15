@@ -50,3 +50,11 @@ def test_last_seat_refusal_explains_and_offers_waitlist(db):
     assert book(db, make_user(db), ev).performative == "AGREE"
     r = book(db, make_user(db), ev)
     assert r.performative == "REFUSE" and r.content["left"] == 0 and r.content["can_waitlist"]
+
+
+def test_payment_reference_and_unique_unguessable_tickets(db):
+    ev = make_event(db, make_venue(db), cats=(("General", 25.0, 10),))
+    r = book(db, make_user(db), ev, qty=3)
+    assert r.content["payment_ref"].startswith("SIM-") and r.content["total"] == 75
+    codes = [t.code for t in db.query(Ticket).all()]
+    assert len(codes) == 3 == len(set(codes)) and all(len(c) >= 20 for c in codes)
