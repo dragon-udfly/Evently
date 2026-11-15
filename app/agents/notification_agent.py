@@ -7,11 +7,18 @@ Rules (reactive: it listens to every broadcast INFORM)
   N4  suspicious_scan -> admins.
 Unknown topics are ignored.
 """
-from .base import Agent
+from sqlalchemy.orm import Session
 
+from ..models import Notification
+from .base import Agent
+from .messages import Message
 
 
 class NotificationAgent(Agent):
     name = "NotificationAgent"
 
-    
+    def _add(self, db: Session, text: str, user_id: int | None = None, audience: str = "user"):
+        db.add(Notification(user_id=user_id, audience=audience, message=text[:500]))
+        self.bump(db, "notifications_sent")
+
+     
