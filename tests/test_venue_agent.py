@@ -76,3 +76,12 @@ def test_clash_returns_propose_with_usable_alternatives(db):
 	assert alts and {"venue_id", "start", "end", "price"} <= set(alts[0])
 	assert any(a["kind"] == "other venue" for a in alts) and any(a["kind"] == "other time" for a in alts)
 
+
+def test_hire_refused_when_venue_not_open_for_hire(db):
+	v = make_venue(db, hire=False)
+	u = make_user(db)
+	start = next_slot(2, 10)
+	r = send(db, "VenueAgent", "hire_request", user_id=u.id, venue_id=v.id, start=start.isoformat(),
+			 end=(start + timedelta(hours=1)).isoformat(), guests=5, purpose="x y z")
+	assert r.performative == "REFUSE" and "not open" in r.content["reason"]
+
