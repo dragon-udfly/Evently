@@ -65,4 +65,18 @@ class WaitlistAgent(Agent):
                                                    Waitlist.status.in_(["waiting", "held"]))):
             w.status = "expired"
 
-   
+    def h_sweep(self, db: Session, msg: Message) -> None:
+        """Proactive timer behaviour: expire stale holds and re-offer the seats."""
+        expired = list(db.scalars(select(Waitlist).where(Waitlist.status == "held", Waitlist.hold_expires <= now())))
+        cats = []
+        for w in expired:
+            w.status = "expired"
+            self._release(db, w)
+            self.bump(db, "holds_expired")
+            self.broadcast(db, msg.conversation_id, "hold_expired", user_id=w.user_id, event=w.event.title)
+            cats.append(w.category_id)
+        for cid in dict.fromkeys(cats):
+            self._offer(db, cid, msg.conversation_id)
+        self.set_belief(db, "last_sweep", now().isoformat())
+
+    
