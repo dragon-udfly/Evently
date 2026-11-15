@@ -141,4 +141,19 @@ class VenueAgent(Agent):
         hire = HireRequest(user_id=int(c["user_id"]), venue_id=venue.id, start=start, end=end,
                            purpose=c["purpose"], guests=guests, price=price, note=note,
                            status="confirmed" if routine else "pending")
-        
+        db.add(hire)
+        db.flush()
+        topic = "hire_confirmed" if routine else "hire_escalated"
+        self.broadcast(db, msg.conversation_id, topic, hire_id=hire.id, user_id=hire.user_id,
+                       venue=venue.name, start=start.isoformat(), price=price)
+        if routine:
+            self.bump(db, "hires_confirmed")
+            return self.reply(msg, "AGREE", decision="confirmed", hire_id=hire.id, price=price, pricing=note,
+                              reason="Routine request approved automatically")
+        self.bump(db, "hires_escalated")
+        why = ("longer than %d hours" % settings.hire_auto_max_hours) if hours > settings.hire_auto_max_hours \
+            else "more than 80% of capacity"
+        return self.reply(msg, "INFORM", decision="escalate", hire_id=hire.id, price=price, pricing=note,
+                          reason=f"Needs admin approval ({why})")
+
+    
