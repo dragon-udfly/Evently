@@ -26,4 +26,8 @@ class NotificationAgent(Agent):
         self._add(db, f"Booking #{c['booking_id']} confirmed: {c['quantity']} x {c['event']}. "
                       f"Paid {c['total']:.2f} (ref {c['payment_ref']}).", c["user_id"])
 
+    def h_booking_cancelled(self, db: Session, msg: Message):
+        c = msg.content
+        self._add(db, f"Booking for {c['event']} cancelled. Refund {c['refund']:.2f} ({c['pct']}%).", c["user_id"])
+
     
