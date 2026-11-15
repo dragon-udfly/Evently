@@ -60,4 +60,9 @@ class WaitlistAgent(Agent):
     def h_seats_freed(self, db: Session, msg: Message) -> None:
         self._offer(db, int(msg.content["category_id"]), msg.conversation_id)
 
-    
+    def h_event_cancelled(self, db: Session, msg: Message) -> None:
+        for w in db.scalars(select(Waitlist).where(Waitlist.event_id == int(msg.content["event_id"]),
+                                                   Waitlist.status.in_(["waiting", "held"]))):
+            w.status = "expired"
+
+   
