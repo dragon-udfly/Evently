@@ -36,3 +36,16 @@ def test_routine_hire_is_confirmed_and_priced(db):
 	assert r.performative == "AGREE" and r.content["decision"] == "confirmed" and r.content["price"] == 2000
 	assert db.query(HireRequest).one().status == "confirmed"
 
+
+def test_weekend_and_peak_pricing(db):
+	v = make_venue(db, rate=1000)
+	u = make_user(db)
+	sat = next_slot(5, 10)
+	r = send(db, "VenueAgent", "hire_request", user_id=u.id, venue_id=v.id, start=sat.isoformat(),
+			 end=(sat + timedelta(hours=1)).isoformat(), guests=10, purpose="Party")
+	assert r.content["price"] == 1250
+	wed_peak = next_slot(2, 17)
+	r = send(db, "VenueAgent", "hire_request", user_id=u.id, venue_id=v.id, start=wed_peak.isoformat(),
+			 end=(wed_peak + timedelta(hours=1)).isoformat(), guests=10, purpose="Dinner")
+	assert r.content["price"] == 1150
+
