@@ -1,6 +1,6 @@
 import json
 
-from app.models import AgentMessage
+from app.models import AgentMessage, Notification
 from tests.helpers import book, make_event, make_user, make_venue
 
 
@@ -13,4 +13,13 @@ def test_one_booking_is_traceable_across_agents_by_conversation_id(db):
 	assert {"BookingAgent", "TicketAgent"} <= senders
 	assert {"REQUEST", "AGREE", "INFORM"} <= {m.performative for m in msgs}
 	assert any(m.receiver == "*" and json.loads(m.content)["topic"] == "booking_confirmed" for m in msgs)
+
+
+def test_notification_agent_reacts_to_broadcast_and_tells_the_right_user(db):
+	ev = make_event(db, make_venue(db))
+	buyer, other = make_user(db), make_user(db)
+	book(db, buyer, ev)
+	assert db.query(Notification).filter_by(user_id=buyer.id).count() == 1
+	assert db.query(Notification).filter_by(user_id=other.id).count() == 0
+	assert "confirmed" in db.query(Notification).first().message
 
