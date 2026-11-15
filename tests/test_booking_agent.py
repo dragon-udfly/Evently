@@ -58,3 +58,16 @@ def test_payment_reference_and_unique_unguessable_tickets(db):
     assert r.content["payment_ref"].startswith("SIM-") and r.content["total"] == 75
     codes = [t.code for t in db.query(Ticket).all()]
     assert len(codes) == 3 == len(set(codes)) and all(len(c) >= 20 for c in codes)
+
+
+def test_refund_follows_policy_tiers(db):
+    v = make_venue(db)
+    expected = {100: 100.0, 48: 50.0, 10: 0.0}  # hours before start -> refund of a 100.00 booking
+    for hours, refund in expected.items():
+        ev = make_event(db, v, hours_ahead=hours, duration=1, title=f"E{hours}", cats=(("G", 100.0, 5),))
+        # use a distinct venue slot per event to keep the calendar rules out of this test
+        v = make_venue(db, name=f"V{hours}")
+        u = make_user(db)
+        b = book(db, u, ev)
+        r = send(db, "BookingAgent", "cancel", user_id=u.id, booking_id=b.content["booking_id"])
+        assert r.performative == "AGREE" and r.content["refund"] == refund, hours
