@@ -1,3 +1,24 @@
-from fastapi import FastAPI
+import asyncio
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="Evently")
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.sessions import SessionMiddleware
+
+from .agents.scheduler import sweep_loop
+from .config import settings
+from .database import Base, engine
+from .routers import admin, api, auth, hire, public, staff
+from .seed import seed
+from .web import BASE, peek_user, render
+
+
+app = FastAPI(title="EventSphere")
+app.add_middleware(SessionMiddleware, secret_key=settings.secret_key, https_only=settings.https_only,
+                   same_site="lax", max_age=60 * 60 * 24)
+app.mount("/static", StaticFiles(directory=str(BASE / "static")), name="static")
+for r in (auth.router, public.router, hire.router, staff.router, admin.router, api.router):
+    app.include_router(r)
+
