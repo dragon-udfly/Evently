@@ -24,4 +24,9 @@
     box.textContent = text;
     if (navigator.vibrate) navigator.vibrate(ok ? 80 : [80, 60, 80]);
   }
+
+  document.getElementById('manualBtn').onclick = function () {
+    var v = document.getElementById('manual').value.trim();
+    if (v) { last = { code: null, at: 0 }; check(v); }
+  };
 })();
