@@ -81,3 +81,13 @@ def test_cancel_refused_after_event_started(db):
     ev.end = ev.end.replace(year=ev.end.year - 1)
     db.commit()
     assert send(db, "BookingAgent", "cancel", user_id=u.id, booking_id=b.content["booking_id"]).performative == "REFUSE"
+
+
+def test_cancelling_event_gives_full_refunds_and_voids_tickets(db):
+    ev = make_event(db, make_venue(db), hours_ahead=5)  # inside the 0% window for normal cancellation
+    for _ in range(2):
+        assert book(db, make_user(db), ev, qty=2).performative == "AGREE"
+    r = send(db, "BookingAgent", "cancel_event", event_id=ev.id)
+    assert r.performative == "AGREE" and r.content["refunded_bookings"] == 2 and r.content["total_refunded"] == 400
+    assert all(b.status == "cancelled" and b.refund_amount == b.total for b in db.query(Booking).all())
+    assert all(t.status == "cancelled" for t in db.query(Ticket).all())
