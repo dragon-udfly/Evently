@@ -58,3 +58,16 @@ def event_detail(event_id: int, request: Request, db: Session = Depends(get_db),
                   policy=REFUND_POLICY)
 
 
+@router.post("/events/{event_id}/book", dependencies=[Depends(csrf_protect)])
+def book(event_id: int, request: Request, category_id: int = Form(...), quantity: int = Form(1),
+         hold_id: str = Form(""), user=Depends(login_required), db: Session = Depends(get_db)):
+    reply = ask(db, f"user:{user.id}", "BookingAgent", "book", user_id=user.id, event_id=event_id,
+                category_id=category_id, quantity=quantity, hold_id=int(hold_id) if hold_id.isdigit() else None)
+    db.commit()
+    if reply.performative == "AGREE":
+        flash(request, f"Booked! Payment reference {reply.content['payment_ref']} (simulated).", "success")
+        return go("/bookings")
+    flash(request, reply.content.get("reason", "Booking failed"), "danger")
+    return go(f"/events/{event_id}")
+
+
