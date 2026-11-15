@@ -26,3 +26,8 @@ def verify_password(password: str, stored: str) -> bool:
         return False
 
 
+def get_current_user(request: Request, db: Session = Depends(get_db)) -> User | None:
+    uid = request.session.get("user_id")
+    return db.get(User, uid) if uid else None
+
+
