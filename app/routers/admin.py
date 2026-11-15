@@ -68,3 +68,25 @@ def venue_edit(vid: int, request: Request, user=Depends(admin_only), db: Session
     if v is None:
         raise HTTPException(404, "Venue not found")
     return render(request, "admin/venues.html", user, venues=db.scalars(select(Venue).order_by(Venue.id)).all(), v=v)
+
+
+@router.post("/venues", dependencies=CSRF)
+@router.post("/venues/{vid}", dependencies=CSRF)
+def venue_save(request: Request, vid: int | None = None, name: str = Form(""), location: str = Form(""),
+               capacity: str = Form(""), description: str = Form(""), image_url: str = Form(""),
+               hourly_rate: str = Form("0"), open_for_hire: str = Form(""),
+               user=Depends(admin_only), db: Session = Depends(get_db)):
+    try:
+        data = _venue_from_form(name, location, capacity, description, image_url, hourly_rate, open_for_hire)
+    except ValidationError as e:
+        flash(request, first_error(e), "danger")
+        return go(f"/admin/venues/{vid}/edit" if vid else "/admin/venues")
+    v = db.get(Venue, vid) if vid else Venue()
+    if v is None:
+        raise HTTPException(404, "Venue not found")
+    for k, val in data.model_dump().items():
+        setattr(v, k, val)
+    db.add(v)
+    db.commit()
+    flash(request, "Venue saved", "success")
+    return go("/admin/venues")
