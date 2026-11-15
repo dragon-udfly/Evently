@@ -9,5 +9,12 @@
   <div class="col-6"><label class="form-label small">Start</label><input class="form-control" type="datetime-local" name="start" required value="{{ ev.start|dtlocal if ev }}"></div>
   <div class="col-6"><label class="form-label small">End</label><input class="form-control" type="datetime-local" name="end" required value="{{ ev.end|dtlocal if ev }}"></div>
   <div class="col-12"><label class="form-label small">Description</label><textarea class="form-control" name="description" rows="3">{{ ev.description if ev }}</textarea></div>
+  <div class="col-12"><h2 class="h6 mt-2">Ticket categories (total may not exceed venue capacity)</h2>
+  {% if locked %}<div class="alert alert-info py-2 small">Bookings exist, so ticket categories are locked.</div>{% endif %}</div>
+  {% for i in range(3) %}{% set c = ev.categories[i] if ev and ev.categories|length > i else None %}
+  <div class="col-5"><input class="form-control" name="cat_name" placeholder="Name{{ ' (required)' if i == 0 }}" value="{{ c.name if c }}" {{ 'readonly' if locked }}></div>
+  <div class="col-3"><input class="form-control" name="cat_price" type="number" min="0" step="0.01" placeholder="Price" value="{{ c.price if c }}" {{ 'readonly' if locked }}></div>
+  <div class="col-4"><input class="form-control" name="cat_qty" type="number" min="1" placeholder="Quantity" value="{{ c.quantity if c }}" {{ 'readonly' if locked }}></div>
+  {% endfor %}
 </form>
 {% endblock %}
