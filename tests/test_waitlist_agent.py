@@ -1,3 +1,5 @@
+from app.config import now
+from app.models import Notification, TicketCategory, Waitlist
 from tests.helpers import book, make_event, make_user, make_venue, send
 
 
@@ -16,4 +18,25 @@ def test_cannot_join_while_tickets_are_available(db):
 	ev = make_event(db, make_venue(db))
 	r = join(db, make_user(db), ev, 1)
 	assert r.performative == "REFUSE" and "available" in r.content["reason"]
+
+
+def test_freed_seats_are_held_for_first_in_line_then_claimed(db):
+	ev, owner, bid = full_event(db)
+	first, second = make_user(db), make_user(db)
+	assert join(db, first, ev).content["position"] == 1
+	assert join(db, second, ev).content["position"] == 2
+	send(db, "BookingAgent", "cancel", user_id=owner.id, booking_id=bid)
+	held = db.query(Waitlist).filter_by(user_id=first.id).one()
+	db.refresh(held)
+	assert held.status == "held" and held.hold_expires > now()
+	assert db.query(Waitlist).filter_by(user_id=second.id).one().status == "waiting"
+	assert db.query(Notification).filter(Notification.user_id == first.id, Notification.message.contains("held")).count() == 1
+	# seats are reserved: a stranger cannot take them
+	assert book(db, make_user(db), ev, qty=1).performative == "REFUSE"
+	# the holder claims them
+	r = book(db, first, ev, qty=2, hold_id=held.id)
+	assert r.performative == "AGREE"
+	db.refresh(held)
+	assert held.status == "claimed"
+	assert db.get(TicketCategory, ev.categories[0].id).sold == 2
 
