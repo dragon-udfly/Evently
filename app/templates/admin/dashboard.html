@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+  <h1 class="h3 mb-0">Organiser dashboard</h1>
+  <div class="d-flex gap-2">
+    {% if pending %}<a class="btn btn-warning btn-sm" href="/admin/hires">{{ pending }} hire request(s) pending</a>{% endif %}
+    <form method="post" action="/admin/sweep" class="m-0"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-outline-secondary btn-sm">Run waitlist sweep now</button></form>
+  </div>
+</div>
+{% endblock %}
