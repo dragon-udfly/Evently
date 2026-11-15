@@ -131,3 +131,10 @@ def ticket_qr(code: str, user=Depends(login_required), db: Session = Depends(get
     buf = io.BytesIO()
     segno.make(code, error="m").save(buf, kind="svg", scale=8, border=2)
     return Response(buf.getvalue(), media_type="image/svg+xml")
+
+
+@router.get("/notifications")
+def notifications(request: Request, user=Depends(login_required), db: Session = Depends(get_db)):
+    rows = db.scalars(select(Notification).where(Notification.user_id == user.id)
+                      .order_by(Notification.id.desc()).limit(50)).all()
+    return render(request, "notifications.html", user, rows=rows)
