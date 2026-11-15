@@ -26,4 +26,13 @@ class MessageBus:
             receiver=msg.receiver, performative=msg.performative,
             content=json.dumps(msg.content, default=str)))
 
+    def send(self, db: Session, msg: Message) -> Message | None:
+        self._log(db, msg)
+        if msg.receiver == "*":  # broadcast: reactive listeners only
+            for name in self.listeners:
+                if name != msg.sender:
+                    self._deliver(db, name, msg)
+            return None
+        return self._deliver(db, msg.receiver, msg)
+
     
