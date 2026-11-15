@@ -31,3 +31,14 @@ def make_event(db, venue, hours_ahead=100, duration=2, cats=(("General", 100.0, 
     db.add(ev)
     db.commit()
     return ev
+
+
+def send(db, receiver, action, sender="test", **content):
+    reply = ask(db, sender, receiver, action, **content)
+    db.commit()
+    return reply
+
+
+def book(db, user, ev, qty=1, cat=None, **extra):
+    cat = cat or ev.categories[0]
+    return send(db, "BookingAgent", "book", user_id=user.id, event_id=ev.id, category_id=cat.id, quantity=qty, **extra)
