@@ -7,4 +7,10 @@
     <form method="post" action="/admin/sweep" class="m-0"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-outline-secondary btn-sm">Run waitlist sweep now</button></form>
   </div>
 </div>
+
+<h2 class="h5 mt-3">Sales and check-ins</h2>
+<div class="table-responsive"><table class="table table-sm align-middle">
+<thead><tr><th>Event</th><th>Status</th><th>Sold</th><th>Ticket cap</th><th>Venue cap</th><th>Checked in</th><th>Revenue (sim.)</th></tr></thead>
+<tbody>{% for s in stats %}<tr><td>{{ s.ev.title }}</td><td>{{ s.ev.status }}</td><td>{{ s.sold }}</td><td>{{ s.tickets }}</td><td>{{ s.capacity }}</td><td>{{ s.checked_in }}</td><td>{{ s.revenue|money }}</td></tr>
+{% else %}<tr><td colspan="7" class="text-muted">No published events.</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}
