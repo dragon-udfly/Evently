@@ -1,5 +1,6 @@
 from pathlib import Path
 from fastapi import Request
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from .database import SessionLocal
 from .models import User
@@ -17,3 +18,13 @@ def render(request: Request, name: str, user: User | None = None, status_code: i
     return templates.TemplateResponse(request, name, ctx, status_code=status_code)
 
 
+def go(url: str):
+    return RedirectResponse(url, status_code=303)
+
+
+def peek_user(request: Request) -> User | None:
+    uid = request.session.get("user_id")
+    if not uid:
+        return None
+    with SessionLocal() as db:
+        return db.get(User, uid)
