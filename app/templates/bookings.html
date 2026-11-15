@@ -13,6 +13,8 @@
       <input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-outline-danger btn-sm">Cancel ({{ info[b.id][0] }}% refund)</button></form>
     {% endif %}
   </div>
+  {% if b.status == 'confirmed' %}<div class="mt-2 d-flex flex-wrap gap-1">
+    {% for t in b.tickets %}<a class="btn btn-sm btn-outline-primary" href="/tickets/{{ t.code }}">Ticket {{ loop.index }} ({{ t.status }})</a>{% endfor %}</div>{% endif %}
 </div></div>
-{% endfor %}
+{% else %}<p class="text-muted">No bookings yet.</p>{% endfor %}
 {% endblock %}
