@@ -204,3 +204,16 @@ def event_cancel(eid: int, request: Request, user=Depends(admin_only), db: Sessi
 def hires(request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
     rows = db.scalars(select(HireRequest).order_by(HireRequest.status.desc(), HireRequest.id.desc())).all()
     return render(request, "admin/hires.html", user, hires=rows)
+
+
+@router.post("/hires/{hid}/{decision}", dependencies=CSRF)
+def hire_decide(hid: int, decision: str, request: Request, note: str = Form(""),
+                user=Depends(admin_only), db: Session = Depends(get_db)):
+    if decision not in ("approve", "reject"):
+        raise HTTPException(404, "Unknown decision")
+    reply = ask(db, f"admin:{user.id}", "VenueAgent", "decide_hire", hire_id=hid, decision=decision, note=note)
+    db.commit()
+    ok = reply.performative == "AGREE"
+    flash(request, f"Hire {'approved' if decision == 'approve' else 'rejected'}" if ok else reply.content["reason"],
+          "success" if ok else "danger")
+    return go("/admin/hires")
