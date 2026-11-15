@@ -22,3 +22,19 @@ def _page(request, user, db, result=None, form=None):
 @router.get("/hire")
 def hire_page(request: Request, user=Depends(login_required), db: Session = Depends(get_db)):
     return _page(request, user, db)
+
+
+@router.post("/hire", dependencies=[Depends(csrf_protect)])
+def hire_submit(request: Request, venue_id: str = Form(""), start: str = Form(""), end: str = Form(""),
+                guests: str = Form(""), purpose: str = Form(""), user=Depends(login_required),
+                db: Session = Depends(get_db)):
+    try:
+        data = HireIn(venue_id=venue_id, start=start, end=end, guests=guests, purpose=purpose)
+    except ValidationError as e:
+        flash(request, first_error(e), "danger")
+        return go("/hire")
+    reply = ask(db, f"user:{user.id}", "VenueAgent", "hire_request", user_id=user.id, venue_id=data.venue_id,
+                start=data.start.isoformat(), end=data.end.isoformat(), guests=data.guests, purpose=data.purpose)
+    db.commit()
+    result = {"performative": reply.performative, **reply.content}
+    return _page(request, user, db, result=result, form=data.model_dump(mode="json"))
