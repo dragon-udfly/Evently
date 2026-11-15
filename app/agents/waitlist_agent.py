@@ -46,4 +46,15 @@ class WaitlistAgent(Agent):
         self.bump(db, "joined")
         return self.reply(msg, "AGREE", waitlist_id=w.id, position=pos)
 
+    def h_leave(self, db: Session, msg: Message) -> Message:
+        w = db.get(Waitlist, int(msg.content["waitlist_id"]))
+        if w is None or w.user_id != int(msg.content["user_id"]) or w.status not in ("waiting", "held"):
+            return self.reply(msg, "REFUSE", reason="Nothing to leave")
+        was_held = w.status == "held"
+        w.status = "left"
+        if was_held:
+            self._release(db, w)
+            self._offer(db, w.category_id, msg.conversation_id)
+        return self.reply(msg, "AGREE")
+
     
