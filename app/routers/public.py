@@ -71,3 +71,16 @@ def book(event_id: int, request: Request, category_id: int = Form(...), quantity
     return go(f"/events/{event_id}")
 
 
+@router.post("/events/{event_id}/waitlist", dependencies=[Depends(csrf_protect)])
+def join_waitlist(event_id: int, request: Request, category_id: int = Form(...), quantity: int = Form(1),
+                  user=Depends(login_required), db: Session = Depends(get_db)):
+    reply = ask(db, f"user:{user.id}", "WaitlistAgent", "join", user_id=user.id, event_id=event_id,
+                category_id=category_id, quantity=quantity)
+    db.commit()
+    if reply.performative == "AGREE":
+        flash(request, f"You are #{reply.content['position']} on the waitlist.", "success")
+    else:
+        flash(request, reply.content.get("reason", "Could not join"), "danger")
+    return go(f"/events/{event_id}")
+
+
