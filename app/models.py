@@ -78,3 +78,14 @@ class Booking(Base):
     tickets: Mapped[list["Ticket"]] = relationship(back_populates="booking")
 
 
+class Ticket(Base):
+    __tablename__ = "tickets"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    booking_id: Mapped[int] = mapped_column(ForeignKey("bookings.id"), index=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), index=True)
+    code: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    status: Mapped[str] = mapped_column(String(20), default="valid")  # valid | used | cancelled
+    used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    booking: Mapped[Booking] = relationship(back_populates="tickets")
+
+
