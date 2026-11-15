@@ -71,3 +71,13 @@ def test_refund_follows_policy_tiers(db):
         b = book(db, u, ev)
         r = send(db, "BookingAgent", "cancel", user_id=u.id, booking_id=b.content["booking_id"])
         assert r.performative == "AGREE" and r.content["refund"] == refund, hours
+
+
+def test_cancel_refused_after_event_started(db):
+    ev = make_event(db, make_venue(db), hours_ahead=1)
+    u = make_user(db)
+    b = book(db, u, ev)
+    ev.start = ev.start.replace(year=ev.start.year - 1)
+    ev.end = ev.end.replace(year=ev.end.year - 1)
+    db.commit()
+    assert send(db, "BookingAgent", "cancel", user_id=u.id, booking_id=b.content["booking_id"]).performative == "REFUSE"
