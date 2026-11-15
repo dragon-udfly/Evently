@@ -79,4 +79,26 @@ class BookingAgent(Agent):
         return self.reply(msg, "AGREE", booking_id=booking.id, payment_ref=booking.payment_ref,
                           total=booking.total, quantity=qty)
 
+    def h_cancel(self, db: Session, msg: Message) -> Message:
+        c, conv = msg.content, msg.conversation_id
+        b = db.get(Booking, int(c["booking_id"]))
+        if b is None or b.user_id != int(c["user_id"]):
+            return self.reply(msg, "REFUSE", reason="Booking not found")
+        if b.status != "confirmed":
+            return self.reply(msg, "REFUSE", reason=f"Booking is already {b.status}")
+        ev = b.event
+        if ev.start <= now():
+            return self.reply(msg, "REFUSE", reason="Event has started; cancellation is closed")
+        pct = refund_pct(ev)
+        b.refund_amount = round(b.total * pct / 100, 2)
+        b.status, b.cancelled_at = "cancelled", now()
+        self.tell(db, "TicketAgent", "REQUEST", conv, action="void", booking_id=b.id)
+        db.execute(update(TicketCategory).where(TicketCategory.id == b.category_id)
+                   .values(sold=TicketCategory.sold - b.quantity))
+        self.bump(db, "cancellations")
+        self.broadcast(db, conv, "booking_cancelled", user_id=b.user_id, event=ev.title,
+                       refund=b.refund_amount, pct=pct)
+        self.tell(db, "WaitlistAgent", "INFORM", conv, topic="seats_freed", category_id=b.category_id)
+        return self.reply(msg, "AGREE", refund=b.refund_amount, pct=pct)
+
     
