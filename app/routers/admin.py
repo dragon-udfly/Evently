@@ -42,3 +42,10 @@ def dashboard(request: Request, conv: str = "", user=Depends(admin_only), db: Se
                         "checked": [s["checked_in"] for s in stats]}).replace("<", "\u003c")
     return render(request, "admin/dashboard.html", user, stats=stats, messages=messages, beliefs=beliefs,
                   alerts=alerts, pending=pending, conv=conv, chart=chart)
+
+
+@router.post("/sweep", dependencies=CSRF)
+def manual_sweep(request: Request, user=Depends(admin_only)):
+    run_sweep()
+    flash(request, "WaitlistAgent sweep executed", "info")
+    return go("/admin")
