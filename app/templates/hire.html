@@ -27,4 +27,8 @@
   <div class="col-8"><label class="form-label small">Purpose</label><input class="form-control" name="purpose" required minlength="3"></div>
   <div class="col-12"><button class="btn btn-primary">Check &amp; request</button></div>
 </form>
+<h2 class="h5">My requests</h2>
+<ul class="list-group">{% for h in mine %}<li class="list-group-item">#{{ h.id }} {{ h.venue.name }} &middot; {{ h.start|dt }} &middot; {{ h.price|money }}
+  <span class="badge text-bg-{{ {'confirmed':'success','pending':'warning','rejected':'danger'}[h.status] }}">{{ h.status }}</span></li>
+{% else %}<li class="list-group-item text-muted">None yet.</li>{% endfor %}</ul>
 {% endblock %}
