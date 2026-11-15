@@ -6,4 +6,22 @@
 {% if ev.venue.image_url %}<img src="{{ ev.venue.image_url }}" class="img-fluid rounded mb-2" alt="{{ ev.venue.name }}">{% endif %}
 <p>{{ ev.start|dt }} &ndash; {{ ev.end.strftime('%H:%M') }}<br><span class="text-muted">{{ ev.venue.name }}, {{ ev.venue.location }}</span></p>
 <p>{{ ev.description }}</p>
+
+{% for w, secs in waits %}
+  {% if w.status == 'held' %}
+  <div class="alert alert-success">
+    <strong>Seats held for you:</strong> {{ w.quantity }} &times; {{ w.category.name }} &mdash; claim within
+    <strong class="countdown" data-secs="{{ secs }}">{{ secs }}s</strong>
+    <form method="post" action="/events/{{ ev.id }}/book" class="mt-2 d-inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <input type="hidden" name="category_id" value="{{ w.category_id }}"><input type="hidden" name="quantity" value="{{ w.quantity }}">
+      <input type="hidden" name="hold_id" value="{{ w.id }}"><button class="btn btn-success btn-sm">Pay &amp; claim</button>
+    </form>
+    <form method="post" action="/waitlist/{{ w.id }}/leave" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-outline-secondary btn-sm">Release</button></form>
+  </div>
+  {% else %}
+  <div class="alert alert-info">On the waitlist for {{ w.quantity }} &times; {{ w.category.name }}.
+    <form method="post" action="/waitlist/{{ w.id }}/leave" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-link btn-sm">Leave</button></form></div>
+  {% endif %}
+{% endfor %}
 {% endblock %}
