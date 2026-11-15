@@ -38,3 +38,9 @@ class VenueIn(BaseModel):
     open_for_hire: bool = False
 
 
+class CategoryIn(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
+    price: float = Field(ge=0)
+    quantity: int = Field(gt=0)
+
+
