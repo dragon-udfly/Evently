@@ -4,6 +4,7 @@
 <h1 class="h3">Create an attendee account</h1>
 <form method="post" action="/register">
   <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <div class="mb-3"><label class="form-label">Name</label><input class="form-control" name="name" required minlength="2"></div>
 </form>
 </div></div>
 {% endblock %}
