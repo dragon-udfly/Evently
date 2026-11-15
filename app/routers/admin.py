@@ -55,3 +55,8 @@ def manual_sweep(request: Request, user=Depends(admin_only)):
 def _venue_from_form(name, location, capacity, description, image_url, hourly_rate, open_for_hire) -> VenueIn:
     return VenueIn(name=name, location=location, capacity=capacity, description=description,
                    image_url=image_url, hourly_rate=hourly_rate, open_for_hire=bool(open_for_hire))
+
+
+@router.get("/venues")
+def venues(request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
+    return render(request, "admin/venues.html", user, venues=db.scalars(select(Venue).order_by(Venue.id)).all(), v=None)
