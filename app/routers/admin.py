@@ -116,3 +116,10 @@ def event_edit(eid: int, request: Request, user=Depends(admin_only), db: Session
         raise HTTPException(404, "Event not found")
     locked = db.scalar(select(func.count(Booking.id)).where(Booking.event_id == eid)) > 0
     return render(request, "admin/event_form.html", user, locked=locked, **_form_ctx(db, ev))
+
+
+def _parse_event(title, category, venue_id, start, end, description, names, prices, qtys) -> EventIn:
+    cats = [CategoryIn(name=n.strip(), price=p, quantity=q)
+            for n, p, q in zip(names, prices, qtys) if n.strip()]
+    return EventIn(title=title, category=category, venue_id=venue_id, start=start, end=end,
+                   description=description, categories=cats)
