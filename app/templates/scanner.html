@@ -2,4 +2,6 @@
 {% block content %}
 <h1 class="h3">Gate scanner</h1>
 <select id="event" class="form-select mb-2">{% for e in events %}<option value="{{ e.id }}">{{ e.title }} &ndash; {{ e.start|dt }}</option>{% endfor %}</select>
+<div id="reader" class="mb-2"></div>
+<button id="camBtn" class="btn btn-primary mb-3">Start camera</button>
 {% endblock %}
