@@ -34,4 +34,28 @@ class Agent:
             return None
         return handler(db, msg)
 
-   
+    # ---- beliefs (persistent state) ----
+    def belief(self, db: Session, key: str, default=None):
+        row = db.get(AgentState, (self.name, key))
+        return json.loads(row.value) if row else default
+
+    def set_belief(self, db: Session, key: str, value):
+        row = db.get(AgentState, (self.name, key))
+        if row is None:
+            db.add(AgentState(agent=self.name, key=key, value=json.dumps(value, default=str)))
+        else:
+            row.value = json.dumps(value, default=str)
+
+    def bump(self, db: Session, key: str, by: int = 1) -> int:
+        """Atomic counter belief (safe when two requests increment together)."""
+        stmt = (update(AgentState).where(AgentState.agent == self.name, AgentState.key == key)
+                .values(value=cast(cast(AgentState.value, Integer) + by, String))
+                .execution_options(synchronize_session=False))
+        if db.execute(stmt).rowcount == 0:
+            try:
+                with db.begin_nested():
+                    db.add(AgentState(agent=self.name, key=key, value=str(by)))
+                    db.flush()
+            except IntegrityError:  # another request created it first
+                db.execute(stmt)
+        return int(db.scalar(select(AgentState.value).where(AgentState.agent == self.name, AgentState.key == key)))
