@@ -31,3 +31,9 @@ def test_agent_beliefs_are_persisted_in_the_database(db):
 	issued = db.get(AgentState, ("TicketAgent", "tickets_issued"))
 	assert sold.value == "3" and issued.value == "3"
 
+
+def test_refusals_always_carry_a_reason(db):
+	ev = make_event(db, make_venue(db))
+	r = book(db, make_user(db), ev, qty=99)
+	assert r.performative == "REFUSE" and r.content["reason"]
+
