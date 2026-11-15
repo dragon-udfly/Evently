@@ -29,3 +29,19 @@ class Venue(Base):
     open_for_hire: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
+class Event(Base):
+    __tablename__ = "events"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(200))
+    category: Mapped[str] = mapped_column(String(50))
+    venue_id: Mapped[int] = mapped_column(ForeignKey("venues.id"))
+    start: Mapped[datetime] = mapped_column(DateTime)
+    end: Mapped[datetime] = mapped_column(DateTime)
+    description: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(20), default="draft")  # draft | published | cancelled
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+    venue: Mapped[Venue] = relationship()
+    categories: Mapped[list["TicketCategory"]] = relationship(
+        back_populates="event", cascade="all, delete-orphan", order_by="TicketCategory.id")
+
+
