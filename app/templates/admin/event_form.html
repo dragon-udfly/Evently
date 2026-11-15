@@ -16,5 +16,9 @@
   <div class="col-3"><input class="form-control" name="cat_price" type="number" min="0" step="0.01" placeholder="Price" value="{{ c.price if c }}" {{ 'readonly' if locked }}></div>
   <div class="col-4"><input class="form-control" name="cat_qty" type="number" min="1" placeholder="Quantity" value="{{ c.quantity if c }}" {{ 'readonly' if locked }}></div>
   {% endfor %}
+  <div class="col-12 mt-3 d-flex gap-2">
+    <button class="btn btn-outline-secondary" name="action" value="draft">Save{{ ' as draft' if not ev or ev.status == 'draft' }}</button>
+    {% if not ev or ev.status == 'draft' %}<button class="btn btn-success" name="action" value="publish">Save &amp; publish</button>{% endif %}
+  </div>
 </form>
 {% endblock %}
