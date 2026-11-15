@@ -99,3 +99,14 @@ def my_bookings(request: Request, user=Depends(login_required), db: Session = De
                       .order_by(Booking.id.desc())).all()
     info = {b.id: (refund_pct(b.event), b.event.start > now()) for b in rows}
     return render(request, "bookings.html", user, bookings=rows, info=info, policy=REFUND_POLICY)
+
+
+@router.post("/bookings/{bid}/cancel", dependencies=[Depends(csrf_protect)])
+def cancel_booking(bid: int, request: Request, user=Depends(login_required), db: Session = Depends(get_db)):
+    reply = ask(db, f"user:{user.id}", "BookingAgent", "cancel", user_id=user.id, booking_id=bid)
+    db.commit()
+    if reply.performative == "AGREE":
+        flash(request, f"Cancelled. Refund {reply.content['refund']:.2f} ({reply.content['pct']}%).", "success")
+    else:
+        flash(request, reply.content.get("reason", "Could not cancel"), "danger")
+    return go("/bookings")
