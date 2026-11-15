@@ -60,3 +60,21 @@ class TicketCategory(Base):
         return self.quantity - self.sold
 
 
+class Booking(Base):
+    __tablename__ = "bookings"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), index=True)
+    category_id: Mapped[int] = mapped_column(ForeignKey("ticket_categories.id"))
+    quantity: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(20), default="confirmed")  # confirmed | cancelled | failed
+    total: Mapped[float] = mapped_column(Float, default=0)
+    refund_amount: Mapped[float] = mapped_column(Float, default=0)
+    payment_ref: Mapped[str] = mapped_column(String(40), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    event: Mapped[Event] = relationship()
+    category: Mapped[TicketCategory] = relationship()
+    tickets: Mapped[list["Ticket"]] = relationship(back_populates="booking")
+
+
