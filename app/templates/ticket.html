@@ -4,5 +4,7 @@
   <h1 class="h4">{{ ev.title }}</h1>
   <p class="mb-1">{{ ev.start|dt }}</p><p class="text-muted">{{ ev.venue.name }}</p>
   <img src="/tickets/{{ t.code }}/qr.svg" alt="QR code" class="qr">
+  <p class="mt-2"><span class="badge text-bg-{{ 'success' if t.status == 'valid' else 'secondary' }}">{{ t.status }}</span></p>
+  <p class="small text-muted">Show this code at the gate. One entry only.</p>
 </div>
 {% endblock %}
