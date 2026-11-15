@@ -7,3 +7,7 @@
 <div class="input-group mb-3"><input id="manual" class="form-control" placeholder="Enter code manually"><button id="manualBtn" class="btn btn-outline-primary">Check</button></div>
 <div id="result" class="alert d-none"></div>
 {% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="/static/scanner.js"></script>
+{% endblock %}
