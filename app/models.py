@@ -103,3 +103,20 @@ class Waitlist(Base):
     category: Mapped[TicketCategory] = relationship()
 
 
+class HireRequest(Base):
+    __tablename__ = "hire_requests"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    venue_id: Mapped[int] = mapped_column(ForeignKey("venues.id"))
+    start: Mapped[datetime] = mapped_column(DateTime)
+    end: Mapped[datetime] = mapped_column(DateTime)
+    purpose: Mapped[str] = mapped_column(String(300))
+    guests: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(20))  # confirmed | pending | rejected
+    price: Mapped[float] = mapped_column(Float, default=0)
+    note: Mapped[str] = mapped_column(String(300), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+    venue: Mapped[Venue] = relationship()
+    user: Mapped[User] = relationship()
+
+
