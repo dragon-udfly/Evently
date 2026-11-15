@@ -20,4 +20,10 @@ class MessageBus:
         if listens:
             self.listeners.append(agent.name)
 
+    def _log(self, db: Session, msg: Message):
+        db.add(AgentMessage(
+            message_id=msg.id, conversation_id=msg.conversation_id, sender=msg.sender,
+            receiver=msg.receiver, performative=msg.performative,
+            content=json.dumps(msg.content, default=str)))
+
     
