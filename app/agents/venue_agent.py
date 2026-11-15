@@ -14,7 +14,16 @@ Decision rules
       otherwise -> INFORM decision=escalate (pending admin approval).
   H5  Admin decision: approving re-checks for clashes first.
 """
+import math
 from datetime import datetime, timedelta
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from ..config import now, settings
+from ..models import Event, HireRequest, Venue
+from .base import Agent
+from .messages import Message
 
 
 def _dt(v) -> datetime:
@@ -25,3 +34,24 @@ def fmt(d: datetime) -> str:
     return d.strftime("%d %b %H:%M")
 
 
+class VenueAgent(Agent):
+    name = "VenueAgent"
+
+    # ---------- calendar ----------
+    def conflicts(self, db: Session, venue_id: int, start: datetime, end: datetime,
+                  exclude_event_id: int | None = None, exclude_hire_id: int | None = None) -> list[str]:
+        buf = timedelta(minutes=settings.venue_buffer_minutes)
+        lo, hi = start - buf, end + buf
+        out = []
+        for e in db.scalars(select(Event).where(
+                Event.venue_id == venue_id, Event.status != "cancelled", Event.start < hi, Event.end > lo)):
+            if e.id != exclude_event_id:
+                out.append(f"event '{e.title}' ({fmt(e.start)}-{fmt(e.end)})")
+        for h in db.scalars(select(HireRequest).where(
+                HireRequest.venue_id == venue_id, HireRequest.status.in_(["confirmed", "pending"]),
+                HireRequest.start < hi, HireRequest.end > lo)):
+            if h.id != exclude_hire_id:
+                out.append(f"private hire ({fmt(h.start)}-{fmt(h.end)})")
+        return out
+
+    
