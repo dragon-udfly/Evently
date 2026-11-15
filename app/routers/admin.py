@@ -102,3 +102,8 @@ def _form_ctx(db, ev=None, form=None):
 def events(request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
     rows = db.scalars(select(Event).order_by(Event.start.desc())).all()
     return render(request, "admin/events.html", user, events=rows)
+
+
+@router.get("/events/new")
+def event_new(request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
+    return render(request, "admin/event_form.html", user, locked=False, **_form_ctx(db))
