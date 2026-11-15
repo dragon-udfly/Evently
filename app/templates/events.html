@@ -5,5 +5,10 @@
   <div class="col-12 col-md-4"><input class="form-control" name="q" placeholder="Search keyword" value="{{ f.q }}"></div>
   <div class="col-6 col-md-2"><select class="form-select" name="category"><option value="">All categories</option>
     {% for c in categories %}<option {{ 'selected' if f.category == c }}>{{ c }}</option>{% endfor %}</select></div>
+  <div class="col-6 col-md-2"><select class="form-select" name="venue_id"><option value="">Any venue</option>
+    {% for v in venues %}<option value="{{ v.id }}" {{ 'selected' if f.venue_id == v.id|string }}>{{ v.name }}</option>{% endfor %}</select></div>
+  <div class="col-6 col-md-2"><input class="form-control" name="max_price" placeholder="Max price" value="{{ f.max_price }}"></div>
+  <div class="col-6 col-md-2"><input class="form-control" type="date" name="date_from" value="{{ f.date_from }}"></div>
+  <div class="col-12"><button class="btn btn-primary">Search</button> <a class="btn btn-link" href="/">Clear</a></div>
 </form>
 {% endblock %}
