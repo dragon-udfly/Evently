@@ -43,3 +43,10 @@ def test_never_oversells_when_many_book_at_once(db):
         tickets = s.scalar(select(func.count(Ticket.id)))
     assert results.count("AGREE") == 5 and results.count("REFUSE") == 7
     assert sold == 5 and tickets == 5
+
+
+def test_last_seat_refusal_explains_and_offers_waitlist(db):
+    ev = make_event(db, make_venue(db), cats=(("General", 10.0, 1),))
+    assert book(db, make_user(db), ev).performative == "AGREE"
+    r = book(db, make_user(db), ev)
+    assert r.performative == "REFUSE" and r.content["left"] == 0 and r.content["can_waitlist"]
