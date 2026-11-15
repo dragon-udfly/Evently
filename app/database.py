@@ -24,6 +24,10 @@ if is_sqlite:
 
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
+
+class Base(DeclarativeBase):
+    pass
+
 def get_db():
     """One session per request. Routers commit explicitly; anything uncommitted is rolled back."""
     db = SessionLocal()
