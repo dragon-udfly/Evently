@@ -7,5 +7,6 @@
 <td class="text-nowrap">
   {% if e.status != 'cancelled' %}<a class="btn btn-sm btn-outline-primary" href="/admin/events/{{ e.id }}/edit">Edit</a>{% endif %}
   {% if e.status == 'draft' %}<form class="d-inline" method="post" action="/admin/events/{{ e.id }}/publish"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-sm btn-success">Publish</button></form>{% endif %}
+  {% if e.status == 'published' %}<form class="d-inline" method="post" action="/admin/events/{{ e.id }}/cancel" onsubmit="return confirm('Cancel and refund everyone?')"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-sm btn-outline-danger">Cancel</button></form>{% endif %}
 </td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}
