@@ -13,4 +13,16 @@
 <thead><tr><th>Event</th><th>Status</th><th>Sold</th><th>Ticket cap</th><th>Venue cap</th><th>Checked in</th><th>Revenue (sim.)</th></tr></thead>
 <tbody>{% for s in stats %}<tr><td>{{ s.ev.title }}</td><td>{{ s.ev.status }}</td><td>{{ s.sold }}</td><td>{{ s.tickets }}</td><td>{{ s.capacity }}</td><td>{{ s.checked_in }}</td><td>{{ s.revenue|money }}</td></tr>
 {% else %}<tr><td colspan="7" class="text-muted">No published events.</td></tr>{% endfor %}</tbody></table></div>
+<div style="max-width:700px"><canvas id="chart" height="140"></canvas></div>
+
+{% if alerts %}<h2 class="h5 mt-3">Alerts</h2><ul class="list-group mb-3">{% for a in alerts %}<li class="list-group-item small">{{ a.message }} <span class="text-muted">{{ a.created_at|dt }}</span></li>{% endfor %}</ul>{% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const d = {{ chart|safe }};
+new Chart(document.getElementById('chart'), {type:'bar', data:{labels:d.labels, datasets:[
+  {label:'Tickets sold', data:d.sold, backgroundColor:'#0d6efd'}, {label:'Checked in', data:d.checked, backgroundColor:'#198754'}]},
+  options:{scales:{y:{beginAtZero:true, ticks:{precision:0}}}}});
+</script>
 {% endblock %}
