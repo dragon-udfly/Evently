@@ -31,3 +31,9 @@ def test_unknown_wrong_event_and_cancelled_are_rejected_with_reasons(db):
 	send(db, "BookingAgent", "cancel", user_id=u.id, booking_id=b.content["booking_id"])
 	assert scan(db, code, ev).content["verdict"] == "cancelled"
 
+
+def test_checkin_closed_before_window_opens(db):
+	ev, _, _, code = setup_ticket(db, hours_ahead=100)
+	r = scan(db, code, ev)
+	assert r.performative == "REFUSE" and r.content["verdict"] == "too_early"
+
