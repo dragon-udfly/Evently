@@ -21,4 +21,9 @@ class NotificationAgent(Agent):
         db.add(Notification(user_id=user_id, audience=audience, message=text[:500]))
         self.bump(db, "notifications_sent")
 
-     
+    def h_booking_confirmed(self, db: Session, msg: Message):
+        c = msg.content
+        self._add(db, f"Booking #{c['booking_id']} confirmed: {c['quantity']} x {c['event']}. "
+                      f"Paid {c['total']:.2f} (ref {c['payment_ref']}).", c["user_id"])
+
+    
