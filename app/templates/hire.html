@@ -6,6 +6,15 @@
   {% if p == 'AGREE' %}<div class="alert alert-success"><strong>Confirmed.</strong> Price {{ result.price|money }} ({{ result.pricing }}). {{ result.reason }}.</div>
   {% elif p == 'INFORM' %}<div class="alert alert-warning"><strong>Sent to admin.</strong> {{ result.reason }}. Quoted price {{ result.price|money }} ({{ result.pricing }}).</div>
   {% elif p == 'PROPOSE' %}
+    <div class="alert alert-info"><strong>Not available as requested.</strong> {{ result.reason }}<br>Try one of these instead:</div>
+    {% for a in result.alternatives %}
+    <form method="post" action="/hire" class="card card-body mb-2 flex-row justify-content-between align-items-center flex-wrap gap-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <input type="hidden" name="venue_id" value="{{ a.venue_id }}"><input type="hidden" name="start" value="{{ a.start }}">
+      <input type="hidden" name="end" value="{{ a.end }}"><input type="hidden" name="guests" value="{{ form.guests }}"><input type="hidden" name="purpose" value="{{ form.purpose }}">
+      <div><strong>{{ a.venue_name }}</strong> ({{ a.kind }})<br><span class="small">{{ a.start[:16].replace('T',' ') }} &rarr; {{ a.end[11:16] }} &middot; {{ a.price|money }}</span></div>
+      <button class="btn btn-primary btn-sm">Request this</button></form>
+    {% endfor %}
   {% else %}<div class="alert alert-danger"><strong>Refused.</strong> {{ result.reason }}</div>{% endif %}
 {% endif %}
 {% endblock %}
