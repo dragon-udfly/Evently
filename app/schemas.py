@@ -44,3 +44,19 @@ class CategoryIn(BaseModel):
     quantity: int = Field(gt=0)
 
 
+class EventIn(BaseModel):
+    title: str = Field(min_length=2, max_length=200)
+    category: Literal["Concert", "Workshop", "Seminar", "Conference", "Other"]
+    venue_id: int
+    start: datetime
+    end: datetime
+    description: str = ""
+    categories: list[CategoryIn] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _times(self):
+        if self.end <= self.start:
+            raise ValueError("end must be after start")
+        return self
+
+
