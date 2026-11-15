@@ -42,3 +42,19 @@ def event_list(request: Request, q: str = "", category: str = "", venue_id: str 
                   f=dict(q=q, category=category, venue_id=venue_id, max_price=max_price, date_from=date_from))
 
 
+@router.get("/events/{event_id}")
+def event_detail(event_id: int, request: Request, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    ev = db.get(Event, event_id)
+    if ev is None or (ev.status == "draft" and not (user and user.role == "admin")):
+        raise HTTPException(404, "Event not found")
+    waits = []
+    if user:
+        for w in db.scalars(select(Waitlist).where(Waitlist.event_id == ev.id, Waitlist.user_id == user.id,
+                                                   Waitlist.status.in_(["waiting", "held"]))):
+            secs = max(int((w.hold_expires - now()).total_seconds()), 0) if w.hold_expires else 0
+            waits.append((w, secs))
+    on_sale = ev.status == "published" and now() < ev.start
+    return render(request, "event_detail.html", user, ev=ev, waits=waits, on_sale=on_sale,
+                  policy=REFUND_POLICY)
+
+
