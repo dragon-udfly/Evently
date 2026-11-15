@@ -84,3 +84,10 @@ def join_waitlist(event_id: int, request: Request, category_id: int = Form(...),
     return go(f"/events/{event_id}")
 
 
+@router.post("/waitlist/{wid}/leave", dependencies=[Depends(csrf_protect)])
+def leave_waitlist(wid: int, request: Request, user=Depends(login_required), db: Session = Depends(get_db)):
+    w = db.get(Waitlist, wid)
+    reply = ask(db, f"user:{user.id}", "WaitlistAgent", "leave", user_id=user.id, waitlist_id=wid)
+    db.commit()
+    flash(request, "Left the waitlist" if reply.performative == "AGREE" else reply.content["reason"], "info")
+    return go(f"/events/{w.event_id}" if w else "/")
