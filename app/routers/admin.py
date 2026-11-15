@@ -49,3 +49,9 @@ def manual_sweep(request: Request, user=Depends(admin_only)):
     run_sweep()
     flash(request, "WaitlistAgent sweep executed", "info")
     return go("/admin")
+
+
+# ---------------- venues ----------------
+def _venue_from_form(name, location, capacity, description, image_url, hourly_rate, open_for_hire) -> VenueIn:
+    return VenueIn(name=name, location=location, capacity=capacity, description=description,
+                   image_url=image_url, hourly_rate=hourly_rate, open_for_hire=bool(open_for_hire))
