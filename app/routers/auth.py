@@ -56,4 +56,7 @@ def login(request: Request, email: str = Form(""), password: str = Form(""), db:
     return go({"admin": "/admin", "staff": "/staff/scanner"}.get(user.role, "/"))
 
 
-
+@router.post("/logout", dependencies=[Depends(csrf_protect)])
+def logout(request: Request):
+    request.session.clear()
+    return go("/")
