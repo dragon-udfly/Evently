@@ -17,3 +17,12 @@ def hash_password(password: str) -> str:
     return f"pbkdf2_sha256${ITER}${salt.hex()}${dk.hex()}"
 
 
+def verify_password(password: str, stored: str) -> bool:
+    try:
+        _, iters, salt, digest = stored.split("$")
+        dk = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), int(iters))
+        return hmac.compare_digest(dk.hex(), digest)
+    except Exception:
+        return False
+
+
