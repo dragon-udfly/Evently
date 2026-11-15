@@ -33,3 +33,13 @@ app.mount("/static", StaticFiles(directory=str(BASE / "static")), name="static")
 for r in (auth.router, public.router, hire.router, staff.router, admin.router, api.router):
     app.include_router(r)
 
+
+@app.exception_handler(StarletteHTTPException)
+async def http_error(request: Request, exc: StarletteHTTPException):
+    wants_json = request.url.path.startswith(("/api/", "/staff/scan"))
+    if exc.status_code == 401 and not wants_json:
+        return RedirectResponse("/login", status_code=303)
+    if wants_json:
+        return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
+    return render(request, "error.html", peek_user(request), status_code=exc.status_code,
+                  code=exc.status_code, detail=exc.detail)
