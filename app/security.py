@@ -46,3 +46,20 @@ def require_role(*roles: str):
     return dep
 
 
+def csrf_token(request: Request) -> str:
+    tok = request.session.get("csrf")
+    if not tok:
+        tok = secrets.token_urlsafe(24)
+        request.session["csrf"] = tok
+    return tok
+
+
+async def csrf_protect(request: Request):
+    """Reject any POST that lacks the session's CSRF token (form field or X-CSRF-Token header)."""
+    sent = request.headers.get("x-csrf-token")
+    if not sent:
+        form = await request.form()
+        sent = form.get("csrf_token")
+    expected = request.session.get("csrf", "")
+    if not sent or not expected or not hmac.compare_digest(str(sent), expected):
+        raise HTTPException(403, "Invalid or missing CSRF token")
