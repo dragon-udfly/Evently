@@ -12,3 +12,9 @@ from ..web import render
 
 router = APIRouter()
 staff_only = require_role("staff", "admin")
+
+
+@router.get("/staff/scanner")
+def scanner(request: Request, user=Depends(staff_only), db: Session = Depends(get_db)):
+    events = db.scalars(select(Event).where(Event.status == "published", Event.end > now()).order_by(Event.start)).all()
+    return render(request, "scanner.html", user, events=events)
