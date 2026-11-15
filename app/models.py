@@ -17,3 +17,15 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
 
 
+class Venue(Base):
+    __tablename__ = "venues"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(120))
+    location: Mapped[str] = mapped_column(String(200))
+    capacity: Mapped[int] = mapped_column(Integer)
+    description: Mapped[str] = mapped_column(Text, default="")
+    image_url: Mapped[str] = mapped_column(String(500), default="")
+    hourly_rate: Mapped[float] = mapped_column(Float, default=0)
+    open_for_hire: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
