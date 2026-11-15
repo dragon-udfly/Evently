@@ -63,3 +63,10 @@ async def csrf_protect(request: Request):
     expected = request.session.get("csrf", "")
     if not sent or not expected or not hmac.compare_digest(str(sent), expected):
         raise HTTPException(403, "Invalid or missing CSRF token")
+
+
+def flash(request: Request, message: str, kind: str = "info"):
+    request.session.setdefault("flashes", [])
+    request.session["flashes"] = request.session["flashes"] + [[kind, message]]
+
+
