@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block title %}Venues{% endblock %}
+{% block content %}
+<h1 class="h3">Venues</h1>
+<form method="post" action="{{ '/admin/venues/%d' % v.id if v else '/admin/venues' }}" class="row g-2 mb-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+</form>
+{% endblock %}
