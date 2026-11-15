@@ -54,4 +54,19 @@ class VenueAgent(Agent):
                 out.append(f"private hire ({fmt(h.start)}-{fmt(h.end)})")
         return out
 
-    
+    def quote(self, venue: Venue, start: datetime, end: datetime) -> tuple[float, str]:
+        total, t, notes = 0.0, start, set()
+        while t < end:
+            step = min(timedelta(minutes=30), end - t)
+            mult = 1.0
+            if t.weekday() >= 5:
+                mult *= settings.weekend_multiplier
+                notes.add("weekend x1.25")
+            if settings.peak_from_hour <= t.hour < settings.peak_to_hour:
+                mult *= settings.peak_multiplier
+                notes.add("peak x1.15")
+            total += venue.hourly_rate * (step.total_seconds() / 3600) * mult
+            t += step
+        return round(total, 2), ", ".join(sorted(notes)) or "standard rate"
+
+   
