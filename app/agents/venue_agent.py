@@ -111,4 +111,34 @@ class VenueAgent(Agent):
         self.bump(db, "slots_accepted")
         return self.reply(msg, "AGREE", reason="Slot is free")
 
-    
+    def h_hire_request(self, db: Session, msg: Message) -> Message:
+        c = msg.content
+        venue = db.get(Venue, int(c["venue_id"]))
+        if venue is None:
+            return self.reply(msg, "REFUSE", reason="Venue does not exist")
+        start, end, guests = _dt(c["start"]), _dt(c["end"]), int(c["guests"])
+        if not venue.open_for_hire:
+            return self.reply(msg, "REFUSE", reason=f"{venue.name} is not open for private hire")
+        if end <= start:
+            return self.reply(msg, "REFUSE", reason="End time must be after start time")
+        if start <= now():
+            return self.reply(msg, "REFUSE", reason="Start time must be in the future")
+        hours = (end - start).total_seconds() / 3600
+        if hours > settings.hire_max_hours:
+            return self.reply(msg, "REFUSE", reason=f"Maximum hire length is {settings.hire_max_hours} hours")
+        if guests > venue.capacity:
+            return self.reply(msg, "REFUSE", reason=f"Guests ({guests}) exceed capacity ({venue.capacity})")
+        clash = self.conflicts(db, venue.id, start, end)
+        if clash:
+            alts = self.alternatives(db, venue, start, end, guests)
+            self.bump(db, "hires_countered")
+            if not alts:
+                return self.reply(msg, "REFUSE", reason="Venue busy and no alternatives found: " + "; ".join(clash))
+            return self.reply(msg, "PROPOSE", reason="Requested time is not available: " + "; ".join(clash),
+                              alternatives=alts)
+        price, note = self.quote(venue, start, end)
+        routine = hours <= settings.hire_auto_max_hours and guests <= settings.hire_auto_max_fill * venue.capacity
+        hire = HireRequest(user_id=int(c["user_id"]), venue_id=venue.id, start=start, end=end,
+                           purpose=c["purpose"], guests=guests, price=price, note=note,
+                           status="confirmed" if routine else "pending")
+        
