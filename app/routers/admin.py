@@ -90,3 +90,9 @@ def venue_save(request: Request, vid: int | None = None, name: str = Form(""), l
     db.commit()
     flash(request, "Venue saved", "success")
     return go("/admin/venues")
+
+
+# ---------------- events ----------------
+def _form_ctx(db, ev=None, form=None):
+    return dict(venues=db.scalars(select(Venue).order_by(Venue.name)).all(), categories=EVENT_CATEGORIES, ev=ev,
+                form=form or {})
