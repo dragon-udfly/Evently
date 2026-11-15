@@ -22,3 +22,8 @@ def inbox(name: str, body: AgentMessageIn, x_agent_key: str = Header(""), db: Se
     reply = bus.send(db, msg)
     db.commit()
     return reply.model_dump() if reply else {"status": "delivered", "conversation_id": msg.conversation_id}
+
+
+@router.get("/healthz")
+def health():
+    return {"status": "ok"}
