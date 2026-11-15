@@ -1,4 +1,8 @@
+from datetime import timedelta
+
+from app.agents.scheduler import run_sweep
 from app.config import now
+from app.database import SessionLocal
 from app.models import Notification, TicketCategory, Waitlist
 from tests.helpers import book, make_event, make_user, make_venue, send
 
@@ -39,4 +43,22 @@ def test_freed_seats_are_held_for_first_in_line_then_claimed(db):
 	db.refresh(held)
 	assert held.status == "claimed"
 	assert db.get(TicketCategory, ev.categories[0].id).sold == 2
+
+
+def test_sweep_expires_unclaimed_hold_and_reoffers_to_next(db):
+	ev, owner, bid = full_event(db)
+	first, second = make_user(db), make_user(db)
+	join(db, first, ev)
+	join(db, second, ev)
+	send(db, "BookingAgent", "cancel", user_id=owner.id, booking_id=bid)
+	h1 = db.query(Waitlist).filter_by(user_id=first.id).one()
+	h1.hold_expires = now() - timedelta(minutes=1)  # time passes with no action by the user
+	db.commit()
+	run_sweep()  # what the scheduler does every 30 s
+	with SessionLocal() as s:
+		assert s.query(Waitlist).filter_by(user_id=first.id).one().status == "expired"
+		h2 = s.query(Waitlist).filter_by(user_id=second.id).one()
+		assert h2.status == "held" and h2.hold_expires > now()
+		assert s.get(TicketCategory, ev.categories[0].id).sold == 2
+		assert s.query(Notification).filter(Notification.user_id == first.id, Notification.message.contains("expired")).count() == 1
 
