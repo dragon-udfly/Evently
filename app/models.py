@@ -45,3 +45,18 @@ class Event(Base):
         back_populates="event", cascade="all, delete-orphan", order_by="TicketCategory.id")
 
 
+class TicketCategory(Base):
+    __tablename__ = "ticket_categories"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("events.id"))
+    name: Mapped[str] = mapped_column(String(60))
+    price: Mapped[float] = mapped_column(Float)
+    quantity: Mapped[int] = mapped_column(Integer)
+    sold: Mapped[int] = mapped_column(Integer, default=0)  # sold + held seats
+    event: Mapped[Event] = relationship(back_populates="categories")
+
+    @property
+    def left(self) -> int:
+        return self.quantity - self.sold
+
+
