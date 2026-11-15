@@ -14,3 +14,9 @@ def test_refuses_more_than_six_tickets_per_request(db):
     assert r.performative == "REFUSE" and "1 to 6" in r.content["reason"]
 
 
+def test_per_user_limit_of_ten_tickets_per_event(db):
+    ev = make_event(db, make_venue(db), cats=(("General", 10.0, 50),))
+    u = make_user(db)
+    assert book(db, u, ev, qty=6).performative == "AGREE"
+    r = book(db, u, ev, qty=5)
+    assert r.performative == "REFUSE" and "10" in r.content["reason"]
