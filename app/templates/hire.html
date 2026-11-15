@@ -1,4 +1,11 @@
 {% extends "base.html" %}{% block title %}Hire a venue{% endblock %}
 {% block content %}
 <h1 class="h3">Hire a whole venue</h1>
+{% if result %}
+  {% set p = result.performative %}
+  {% if p == 'AGREE' %}<div class="alert alert-success"><strong>Confirmed.</strong> Price {{ result.price|money }} ({{ result.pricing }}). {{ result.reason }}.</div>
+  {% elif p == 'INFORM' %}<div class="alert alert-warning"><strong>Sent to admin.</strong> {{ result.reason }}. Quoted price {{ result.price|money }} ({{ result.pricing }}).</div>
+  {% elif p == 'PROPOSE' %}
+  {% else %}<div class="alert alert-danger"><strong>Refused.</strong> {{ result.reason }}</div>{% endif %}
+{% endif %}
 {% endblock %}
