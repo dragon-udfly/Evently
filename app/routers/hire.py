@@ -17,3 +17,8 @@ def _page(request, user, db, result=None, form=None):
     venues = db.scalars(select(Venue).where(Venue.open_for_hire.is_(True)).order_by(Venue.name)).all()
     mine = db.scalars(select(HireRequest).where(HireRequest.user_id == user.id).order_by(HireRequest.id.desc())).all()
     return render(request, "hire.html", user, venues=venues, mine=mine, result=result, form=form or {})
+
+
+@router.get("/hire")
+def hire_page(request: Request, user=Depends(login_required), db: Session = Depends(get_db)):
+    return _page(request, user, db)
