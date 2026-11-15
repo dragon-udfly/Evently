@@ -5,5 +5,7 @@
 <tbody>{% for e in events %}<tr><td>{{ e.title }}</td><td>{{ e.start|dt }}</td><td>{{ e.venue.name }}</td>
 <td><span class="badge text-bg-{{ {'draft':'warning','published':'success','cancelled':'secondary'}[e.status] }}">{{ e.status }}</span></td>
 <td class="text-nowrap">
+  {% if e.status != 'cancelled' %}<a class="btn btn-sm btn-outline-primary" href="/admin/events/{{ e.id }}/edit">Edit</a>{% endif %}
+  {% if e.status == 'draft' %}<form class="d-inline" method="post" action="/admin/events/{{ e.id }}/publish"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-sm btn-success">Publish</button></form>{% endif %}
 </td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}
