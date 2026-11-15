@@ -31,8 +31,20 @@
   <div><strong>{{ c.name }}</strong> &middot; {{ c.price|money }}<br>
     <span class="small {{ 'text-danger' if c.left <= 0 else 'text-muted' }}">{{ [c.left,0]|max }} left of {{ c.quantity }}</span></div>
   {% if on_sale %}
-    {% if not user %}<a class="btn btn-primary btn-sm" href="/login">Sign in to book</a>{% endif %}
+    {% if not user %}<a class="btn btn-primary btn-sm" href="/login">Sign in to book</a>
+    {% elif c.left > 0 %}
+    <form method="post" action="/events/{{ ev.id }}/book" class="d-flex gap-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}"><input type="hidden" name="category_id" value="{{ c.id }}">
+      <input class="form-control form-control-sm" style="width:70px" type="number" name="quantity" min="1" max="6" value="1">
+      <button class="btn btn-primary btn-sm">Book (simulated pay)</button></form>
+    {% else %}
+    <form method="post" action="/events/{{ ev.id }}/waitlist" class="d-flex gap-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}"><input type="hidden" name="category_id" value="{{ c.id }}">
+      <input class="form-control form-control-sm" style="width:70px" type="number" name="quantity" min="1" max="6" value="1">
+      <button class="btn btn-warning btn-sm">Join waitlist</button></form>
+    {% endif %}
   {% endif %}
 </div></div>
 {% endfor %}
+<p class="small text-muted">{{ policy }} Payments are simulated; never enter real card details.</p>
 {% endblock %}
