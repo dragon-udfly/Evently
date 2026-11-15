@@ -20,3 +20,26 @@ def test_per_user_limit_of_ten_tickets_per_event(db):
     assert book(db, u, ev, qty=6).performative == "AGREE"
     r = book(db, u, ev, qty=5)
     assert r.performative == "REFUSE" and "10" in r.content["reason"]
+
+
+def test_never_oversells_when_many_book_at_once(db):
+    ev = make_event(db, make_venue(db), cats=(("General", 10.0, 5),))
+    cat_id, ev_id = ev.categories[0].id, ev.id
+    uids = [make_user(db).id for _ in range(12)]
+    results = []
+
+    def worker(uid):
+        with SessionLocal() as s:
+            r = ask(s, f"user:{uid}", "BookingAgent", "book", user_id=uid, event_id=ev_id,
+                    category_id=cat_id, quantity=1)
+            s.commit()
+            results.append(r.performative)
+
+    threads = [Thread(target=worker, args=(u,)) for u in uids]
+    [t.start() for t in threads]
+    [t.join() for t in threads]
+    with SessionLocal() as s:
+        sold = s.get(TicketCategory, cat_id).sold
+        tickets = s.scalar(select(func.count(Ticket.id)))
+    assert results.count("AGREE") == 5 and results.count("REFUSE") == 7
+    assert sold == 5 and tickets == 5
