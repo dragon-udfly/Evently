@@ -123,3 +123,11 @@ def _own_ticket(code: str, user, db: Session) -> Ticket:
 def ticket_page(code: str, request: Request, user=Depends(login_required), db: Session = Depends(get_db)):
     t = _own_ticket(code, user, db)
     return render(request, "ticket.html", user, t=t, ev=db.get(Event, t.event_id))
+
+
+@router.get("/tickets/{code}/qr.svg")
+def ticket_qr(code: str, user=Depends(login_required), db: Session = Depends(get_db)):
+    _own_ticket(code, user, db)
+    buf = io.BytesIO()
+    segno.make(code, error="m").save(buf, kind="svg", scale=8, border=2)
+    return Response(buf.getvalue(), media_type="image/svg+xml")
