@@ -1,6 +1,11 @@
 import os
 from datetime import datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
+
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
 class Settings:
