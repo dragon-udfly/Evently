@@ -1,6 +1,6 @@
 import json
 
-from app.models import AgentMessage, Notification
+from app.models import AgentMessage, AgentState, Notification
 from tests.helpers import book, make_event, make_user, make_venue
 
 
@@ -22,4 +22,12 @@ def test_notification_agent_reacts_to_broadcast_and_tells_the_right_user(db):
 	assert db.query(Notification).filter_by(user_id=buyer.id).count() == 1
 	assert db.query(Notification).filter_by(user_id=other.id).count() == 0
 	assert "confirmed" in db.query(Notification).first().message
+
+
+def test_agent_beliefs_are_persisted_in_the_database(db):
+	ev = make_event(db, make_venue(db))
+	book(db, make_user(db), ev, qty=3)
+	sold = db.get(AgentState, ("BookingAgent", "tickets_sold"))
+	issued = db.get(AgentState, ("TicketAgent", "tickets_issued"))
+	assert sold.value == "3" and issued.value == "3"
 
