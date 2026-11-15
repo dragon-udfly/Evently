@@ -1,5 +1,7 @@
 {% extends "base.html" %}{% block title %}Ticket{% endblock %}
 {% block content %}
 <div class="text-center">
+  <h1 class="h4">{{ ev.title }}</h1>
+  <p class="mb-1">{{ ev.start|dt }}</p><p class="text-muted">{{ ev.venue.name }}</p>
 </div>
 {% endblock %}
