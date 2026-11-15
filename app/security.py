@@ -37,3 +37,12 @@ def login_required(user: User | None = Depends(get_current_user)) -> User:
     return user
 
 
+def require_role(*roles: str):
+    """Dependency factory: every admin/staff route uses it, so role checks cannot be forgotten."""
+    def dep(user: User = Depends(login_required)) -> User:
+        if user.role not in roles:
+            raise HTTPException(403, "You do not have permission to open this page")
+        return user
+    return dep
+
+
