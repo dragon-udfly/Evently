@@ -91,4 +91,24 @@ class VenueAgent(Agent):
                 others += 1
         return out
 
+    # ---------- handlers ----------
+    def h_check_slot(self, db: Session, msg: Message) -> Message:
+        c = msg.content
+        venue = db.get(Venue, int(c["venue_id"]))
+        if venue is None:
+            return self.reply(msg, "REFUSE", reason="Venue does not exist")
+        start, end = _dt(c["start"]), _dt(c["end"])
+        if end <= start:
+            return self.reply(msg, "REFUSE", reason="End time must be after start time")
+        total = int(c.get("total_tickets", 0))
+        if total > venue.capacity:
+            return self.reply(msg, "REFUSE", reason=f"Total tickets ({total}) exceed venue capacity ({venue.capacity})")
+        clash = self.conflicts(db, venue.id, start, end, c.get("event_id"), None)
+        if clash:
+            self.bump(db, "slots_refused")
+            return self.reply(msg, "REFUSE", reason="Time slot clashes (incl. 30 min turnaround): " + "; ".join(clash),
+                              conflicts=clash)
+        self.bump(db, "slots_accepted")
+        return self.reply(msg, "AGREE", reason="Slot is free")
+
     
