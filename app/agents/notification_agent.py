@@ -57,4 +57,7 @@ class NotificationAgent(Agent):
         c = msg.content
         self._add(db, f"Hire #{c['hire_id']} of {c['venue']} was {c['decision']}. {c.get('note', '')}", c["user_id"])
 
-   
+    def h_suspicious_scan(self, db: Session, msg: Message):
+        c = msg.content
+        self._add(db, f"Suspicious: ticket {c['code']} scanned {c['scans']} times at {c['event']} "
+                      f"(possible shared screenshot).", None, "admin")
