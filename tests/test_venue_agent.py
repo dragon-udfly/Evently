@@ -17,3 +17,11 @@ def test_refuses_overlap_and_respects_turnaround_buffer(db):
 	s, e = slot(ev, 30)  # exactly the buffer: allowed
 	assert send(db, "VenueAgent", "check_slot", venue_id=v.id, start=s, end=e, total_tickets=10).performative == "AGREE"
 
+
+def test_refuses_tickets_above_capacity_and_allows_editing_own_event(db):
+	v = make_venue(db, capacity=50)
+	ev = make_event(db, v)
+	args = dict(venue_id=v.id, start=ev.start.isoformat(), end=ev.end.isoformat())
+	assert send(db, "VenueAgent", "check_slot", total_tickets=51, **args).performative == "REFUSE"
+	assert send(db, "VenueAgent", "check_slot", total_tickets=50, event_id=ev.id, **args).performative == "AGREE"
+
