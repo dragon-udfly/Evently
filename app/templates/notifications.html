@@ -3,6 +3,6 @@
 <h1 class="h3">Notifications</h1>
 <ul class="list-group">
 {% for n in rows %}<li class="list-group-item"><div>{{ n.message }}</div><div class="small text-muted">{{ n.created_at|dt }}</div></li>
-{% endfor %}
+{% else %}<li class="list-group-item text-muted">Nothing yet.</li>{% endfor %}
 </ul>
 {% endblock %}
