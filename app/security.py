@@ -70,3 +70,5 @@ def flash(request: Request, message: str, kind: str = "info"):
     request.session["flashes"] = request.session["flashes"] + [[kind, message]]
 
 
+def pop_flashes(request: Request) -> list:
+    return request.session.pop("flashes", [])
