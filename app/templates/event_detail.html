@@ -24,4 +24,15 @@
     <form method="post" action="/waitlist/{{ w.id }}/leave" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-link btn-sm">Leave</button></form></div>
   {% endif %}
 {% endfor %}
+
+<h2 class="h5">Tickets</h2>
+{% for c in ev.categories %}
+<div class="card mb-2"><div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+  <div><strong>{{ c.name }}</strong> &middot; {{ c.price|money }}<br>
+    <span class="small {{ 'text-danger' if c.left <= 0 else 'text-muted' }}">{{ [c.left,0]|max }} left of {{ c.quantity }}</span></div>
+  {% if on_sale %}
+    {% if not user %}<a class="btn btn-primary btn-sm" href="/login">Sign in to book</a>{% endif %}
+  {% endif %}
+</div></div>
+{% endfor %}
 {% endblock %}
