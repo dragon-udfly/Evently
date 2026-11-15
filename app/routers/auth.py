@@ -10,3 +10,8 @@ from ..security import csrf_protect, flash, get_current_user, hash_password, ver
 from ..web import go, render
 
 router = APIRouter()
+
+
+@router.get("/register")
+def register_page(request: Request, user=Depends(get_current_user)):
+    return render(request, "register.html", user)
