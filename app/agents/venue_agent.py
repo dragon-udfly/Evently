@@ -69,4 +69,26 @@ class VenueAgent(Agent):
             t += step
         return round(total, 2), ", ".join(sorted(notes)) or "standard rate"
 
-   
+    def alternatives(self, db: Session, venue: Venue, start: datetime, end: datetime, guests: int) -> list[dict]:
+        dur, out = end - start, []
+        for k in range(1, 25):
+            for off in (k, -k):
+                s = start + timedelta(hours=off)
+                if s <= now() or len(out) >= 3:
+                    continue
+                if not self.conflicts(db, venue.id, s, s + dur):
+                    price, _ = self.quote(venue, s, s + dur)
+                    out.append({"venue_id": venue.id, "venue_name": venue.name, "start": s.isoformat(),
+                                "end": (s + dur).isoformat(), "price": price, "kind": "other time"})
+            if len(out) >= 3:
+                break
+        others = 0
+        for v in db.scalars(select(Venue).where(Venue.open_for_hire.is_(True), Venue.id != venue.id)):
+            if v.capacity >= guests and not self.conflicts(db, v.id, start, end) and others < 3:
+                price, _ = self.quote(v, start, end)
+                out.append({"venue_id": v.id, "venue_name": v.name, "start": start.isoformat(),
+                            "end": end.isoformat(), "price": price, "kind": "other venue"})
+                others += 1
+        return out
+
+    
