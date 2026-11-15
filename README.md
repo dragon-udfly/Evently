@@ -1,83 +1,116 @@
-# EventSphere - agent-based venue booking and ticketing (IT4123 ICA 02)
+# 🎟️ EventSphere — Multi-Agent Venue Booking & Ticketing Platform
 
-FastAPI + SQLAlchemy + Jinja/Bootstrap. All booking, hire, ticketing and waitlist decisions are made by five
-cooperating agents that talk only through JSON messages on a message bus (every message is logged).
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0%2B-red.svg)](https://www.sqlalchemy.org/)
+[![Bootstrap 5](https://img.shields.io/badge/Bootstrap-5.3-7952B3.svg?logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
+[![Pytest](https://img.shields.io/badge/Tests-Pytest%20Passing-success.svg?logo=pytest&logoColor=white)](https://pytest.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)](LICENSE)
 
-## Run locally
-```bash
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env   # then export the variables (or set them in your shell)
-uvicorn app.main:app --reload
-```
-Open http://127.0.0.1:8000 . SQLite is used by default; demo data is seeded on first start (`SEED_DEMO=1`).
+> **EventSphere** is an enterprise-grade venue booking, event management, and ticketing platform powered by a **decentralized Multi-Agent System (MAS)**. Built with FastAPI, SQLAlchemy, and Bootstrap 5, all business logic, booking approvals, venue hire negotiations, and waitlist allocations are handled by **5 autonomous agents** communicating through standard FIPA-ACL JSON messages over a persistent message bus.
 
-## Environment variables
-| Name | Purpose | Default |
-|---|---|---|
-| `DATABASE_URL` | SQLite locally, PostgreSQL in production | `sqlite:///./eventsphere.db` |
-| `SECRET_KEY` | signs session cookies (**set a long random value in production**) | dev value |
-| `APP_TIMEZONE` | timezone for all event times | `Asia/Colombo` |
-| `HTTPS_ONLY` | `1` makes the session cookie Secure (use on Render) | `0` |
-| `SEED_DEMO` | create demo users, venues, events when DB is empty | `1` |
-| `ENABLE_SCHEDULER` | run the WaitlistAgent expiry sweep every 30 s | `1` |
-| `HOLD_MINUTES` | waitlist seat-hold length | `10` |
-| `AGENT_API_KEY` | key for the HTTP agent inboxes (`X-Agent-Key`); blank disables them | blank |
+---
 
-Secrets are never committed (`.env` is git-ignored).
+## 🏛️ System Architecture & Autonomous Agents
 
-## Demo accounts
-| Role | Email | Password |
-|---|---|---|
-| admin | admin@eventsphere.test | Admin#12345 |
-| staff | staff@eventsphere.test | Staff#12345 |
-| attendee | attendee@eventsphere.test | Attendee#12345 |
+EventSphere decouples core domain operations into five specialized, autonomous agents. Every decision, transition, and belief state update is logged for complete auditability.
 
-Change or remove these before a public demo if you prefer (edit `app/seed.py`).
-
-## Tests
-```bash
-pytest -v
-```
-30 tests: security/CSRF/roles, every agent's rules, overbooking under 12 concurrent threads, double check-in,
-hold expiry + re-offer, message traceability, HTTP inbox.
-
-## Deploy on Render
-1. Push to GitHub (add the lecturer as collaborator if private).
-2. Render -> New -> Blueprint -> select the repo (`render.yaml` creates the web service and a PostgreSQL database
-   and generates `SECRET_KEY` and `AGENT_API_KEY`). Or create them manually with the env vars above.
-3. Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
-4. Open the live URL before the viva (free tier sleeps). The waitlist scheduler runs inside the web process.
-
-## Project layout
-```
-app/
-  main.py            app factory, middleware, error handling, scheduler start
-  config.py          settings and every business-rule constant
-  database.py        engine/session (SQLite or PostgreSQL)
-  models.py          tables (incl. agent_messages log and agent_state beliefs)
-  schemas.py         Pydantic validation
-  security.py        PBKDF2 hashing, sessions, role dependency, CSRF, flash
-  policy.py          refund policy (shared display helper)
-  agents/
-    messages.py      JSON envelope + performatives
-    bus.py           bus: logs every message, delivers, broadcasts
-    base.py          Agent base class, persistent beliefs
-    venue_agent.py booking_agent.py ticket_agent.py waitlist_agent.py notification_agent.py
-    registry.py      builds the bus; helper for user -> agent requests
-    scheduler.py     30 s proactive sweep
-  routers/           auth, public (attendee), hire, staff, admin, api (HTTP agent inboxes)
-  templates/ static/ Bootstrap pages, QR/scanner JS, countdown JS
-tests/               pytest suite
+```mermaid
+flowchart TD
+    Client(["🌐 Web Client / QR Scanner"]) <--> API["FastAPI Web Layer"]
+    API <--> Bus[("🚌 Agent MessageBus (Logged)")]
+    
+    subgraph Agents ["🤖 Multi-Agent Ecosystem"]
+        direction TB
+        VA["🏛️ VenueAgent<br/><i>Venue hire, capacity & schedule</i>"]
+        BA["🎫 BookingAgent<br/><i>Ticket reservations & inventory</i>"]
+        TA["🔍 TicketAgent<br/><i>QR generation & gate check-in</i>"]
+        WA["⏳ WaitlistAgent<br/><i>Timed holds & auto re-offering</i>"]
+        NA["🔔 NotificationAgent<br/><i>In-app alerts & notifications</i>"]
+    end
+    
+    Bus <--> VA
+    Bus <--> BA
+    Bus <--> TA
+    Bus <--> WA
+    Bus <--> NA
 ```
 
-## HTTP agent inboxes (advanced feature)
-```bash
-curl -X POST $URL/api/agents/TicketAgent/inbox -H "X-Agent-Key: $AGENT_API_KEY" -H "Content-Type: application/json" \
-  -d '{"sender":"demo","performative":"REQUEST","content":{"action":"scan","code":"abc","event_id":1}}'
-```
-Interactive docs: `/docs`.
+### The Agent Roster
+* **🏛️ VenueAgent**: Evaluates venue hire requests, enforces buffer times, computes peak/weekend multipliers, and prevents schedule conflicts.
+* **🎫 BookingAgent**: Governs ticket availability, atomic quantity deduction, basket hold validations, and purchase finalization.
+* **🔍 TicketAgent**: Generates cryptographically secure ticket codes, renders QR codes, and detects duplicate or suspicious gate scans.
+* **⏳ WaitlistAgent**: Manages queue allocations with a proactive 30-second scheduler sweep, releasing expired holds and notifying the next attendee in line.
+* **🔔 NotificationAgent**: Listens to system-wide agent broadcasts and dispatches contextual user notifications.
 
-## Advanced features implemented
-Waitlist with timed holds, visible countdown and automatic re-offer; weekend/peak hire pricing; suspicious repeated
-scan detection; HTTP agent inboxes; dashboard chart; advanced search (venue, max price, date).
+---
+
+## 🚀 How to Run Locally
+
+### Prerequisites
+* **Python 3.10+** (Python 3.11 or 3.12 recommended)
+* **Git**
+
+### Step-by-Step Setup
+
+1. **Clone the repository and enter the project folder:**
+   ```bash
+   git clone https://github.com/your-username/EventSphere.git
+   cd EventSphere
+   ```
+
+2. **Create and activate a virtual environment:**
+   * **Linux / macOS:**
+     ```bash
+     python3 -m venv .venv
+     source .venv/bin/activate
+     ```
+   * **Windows (PowerShell / CMD):**
+     ```powershell
+     python -m venv .venv
+     .venv\Scripts\Activate.ps1
+     ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+
+4. **Configure environment variables:**
+   ```bash
+   # Linux / macOS
+   cp .env.example .env
+
+   # Windows (PowerShell)
+   Copy-Item .env.example .env
+   ```
+
+5. **Start the development server:**
+   ```bash
+   uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+   ```
+
+6. **Open in browser:**
+   * **Web Application:** [http://127.0.0.1:8000](http://127.0.0.1:8000)
+   * **Interactive API Documentation:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+   * **Alternative API Docs:** [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+
+> 💡 **Tip:** On initial launch with `SEED_DEMO=1`, the SQLite database (`eventsphere.db`) is automatically initialized and populated with sample venues, events, ticket categories, and demo user accounts.
+
+---
+
+## ⚙️ Environment Variables
+
+Configure application settings by modifying `.env` or exporting system environment variables:
+
+| Variable | Description | Default | Production Recommendation |
+|:---|:---|:---:|:---|
+| `DATABASE_URL` | SQLAlchemy connection string (SQLite or PostgreSQL) | `sqlite:///./eventsphere.db` | PostgreSQL connection string |
+| `SECRET_KEY` | Cryptographic secret for signing session cookies | `dev-only-change-me` | 64+ char random hex string |
+| `APP_TIMEZONE` | Timezone for event scheduling and display | `Asia/Colombo` | Local server / target timezone |
+| `HTTPS_ONLY` | Enforces `Secure` flag on HTTP cookies (`1` to enable) | `0` | Set to `1` behind SSL/TLS |
+| `SEED_DEMO` | Seeds sample events, venues, and users when DB is empty | `1` | Set to `0` in production |
+| `ENABLE_SCHEDULER` | Runs the proactive 30s WaitlistAgent expiration sweep | `1` | `1` (leave enabled) |
+| `HOLD_MINUTES` | Duration (in minutes) for waitlist seat-reservation holds | `10` | `5` – `15` depending on traffic |
+| `AGENT_API_KEY` | Secret token required for external HTTP agent inboxes | `""` *(disabled)* | Strong API secret key |
