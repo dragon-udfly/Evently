@@ -110,3 +110,16 @@ def cancel_booking(bid: int, request: Request, user=Depends(login_required), db:
     else:
         flash(request, reply.content.get("reason", "Could not cancel"), "danger")
     return go("/bookings")
+
+
+def _own_ticket(code: str, user, db: Session) -> Ticket:
+    t = db.scalar(select(Ticket).where(Ticket.code == code))
+    if t is None or t.booking.user_id != user.id:
+        raise HTTPException(404, "Ticket not found")
+    return t
+
+
+@router.get("/tickets/{code}")
+def ticket_page(code: str, request: Request, user=Depends(login_required), db: Session = Depends(get_db)):
+    t = _own_ticket(code, user, db)
+    return render(request, "ticket.html", user, t=t, ev=db.get(Event, t.event_id))
