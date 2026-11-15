@@ -21,3 +21,13 @@ def test_ticket_admitted_once_then_rejected(db):
 	assert second.performative == "REFUSE" and second.content["verdict"] == "already_used"
 	assert "Already used" in second.content["reason"]
 
+
+def test_unknown_wrong_event_and_cancelled_are_rejected_with_reasons(db):
+	ev, u, b, code = setup_ticket(db)
+	other = make_event(db, make_venue(db, name="Other"), hours_ahead=1, title="Other show")
+	assert scan(db, "no-such-code", ev).content["verdict"] == "unknown"
+	wrong = scan(db, code, other)
+	assert wrong.content["verdict"] == "wrong_event" and "Show" in wrong.content["reason"]
+	send(db, "BookingAgent", "cancel", user_id=u.id, booking_id=b.content["booking_id"])
+	assert scan(db, code, ev).content["verdict"] == "cancelled"
+
