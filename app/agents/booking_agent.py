@@ -101,4 +101,19 @@ class BookingAgent(Agent):
         self.tell(db, "WaitlistAgent", "INFORM", conv, topic="seats_freed", category_id=b.category_id)
         return self.reply(msg, "AGREE", refund=b.refund_amount, pct=pct)
 
-    
+    def h_cancel_event(self, db: Session, msg: Message) -> Message:
+        conv = msg.conversation_id
+        ev = db.get(Event, int(msg.content["event_id"]))
+        if ev is None or ev.status != "published":
+            return self.reply(msg, "REFUSE", reason="Only a published event can be cancelled")
+        ev.status = "cancelled"
+        total_refund, n = 0.0, 0
+        for b in db.scalars(select(Booking).where(Booking.event_id == ev.id, Booking.status == "confirmed")):
+            b.status, b.refund_amount, b.cancelled_at = "cancelled", b.total, now()
+            total_refund += b.total
+            n += 1
+            self.tell(db, "TicketAgent", "REQUEST", conv, action="void", booking_id=b.id)
+            self.broadcast(db, conv, "event_cancelled", user_id=b.user_id, event=ev.title, refund=b.total)
+        self.tell(db, "WaitlistAgent", "INFORM", conv, topic="event_cancelled", event_id=ev.id)
+        self.bump(db, "events_cancelled")
+        return self.reply(msg, "AGREE", refunded_bookings=n, total_refunded=round(total_refund, 2))
