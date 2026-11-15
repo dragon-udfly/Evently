@@ -40,4 +40,8 @@ class NotificationAgent(Agent):
         self._add(db, f"Seats available! {c['quantity']} ticket(s) for {c['event']} held for you for "
                       f"{c['minutes']} minutes. Open the event page to claim.", c["user_id"])
 
-   
+    def h_hold_expired(self, db: Session, msg: Message):
+        c = msg.content
+        self._add(db, f"Your seat hold for {c['event']} expired and was passed on.", c["user_id"])
+
+    
