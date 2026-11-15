@@ -79,4 +79,9 @@ class WaitlistAgent(Agent):
             self._offer(db, cid, msg.conversation_id)
         self.set_belief(db, "last_sweep", now().isoformat())
 
+    # ---- internals ----
+    def _release(self, db: Session, w: Waitlist):
+        db.execute(update(TicketCategory).where(TicketCategory.id == w.category_id)
+                   .values(sold=TicketCategory.sold - w.quantity))
+
     
