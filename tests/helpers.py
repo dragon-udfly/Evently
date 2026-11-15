@@ -21,3 +21,13 @@ def make_venue(db, capacity=100, hire=True, rate=1000.0, name="Hall"):
     db.add(v)
     db.commit()
     return v
+
+
+def make_event(db, venue, hours_ahead=100, duration=2, cats=(("General", 100.0, 10),), status="published", title="Show"):
+    start = (now() + timedelta(hours=hours_ahead)).replace(minute=0, second=0)
+    ev = Event(title=title, category="Concert", venue_id=venue.id, start=start, end=start + timedelta(hours=duration),
+               status=status)
+    ev.categories = [TicketCategory(name=n, price=p, quantity=q) for n, p, q in cats]
+    db.add(ev)
+    db.commit()
+    return ev
