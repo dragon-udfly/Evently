@@ -3,5 +3,6 @@
 <div class="text-center">
   <h1 class="h4">{{ ev.title }}</h1>
   <p class="mb-1">{{ ev.start|dt }}</p><p class="text-muted">{{ ev.venue.name }}</p>
+  <img src="/tickets/{{ t.code }}/qr.svg" alt="QR code" class="qr">
 </div>
 {% endblock %}
