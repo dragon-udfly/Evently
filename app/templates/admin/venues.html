@@ -3,5 +3,8 @@
 <h1 class="h3">Venues</h1>
 <form method="post" action="{{ '/admin/venues/%d' % v.id if v else '/admin/venues' }}" class="row g-2 mb-4">
   <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <div class="col-12"><h2 class="h5">{{ 'Edit venue' if v else 'New venue' }}</h2></div>
+  <div class="col-md-6"><input class="form-control" name="name" placeholder="Name" required value="{{ v.name if v }}"></div>
+  <div class="col-md-6"><input class="form-control" name="location" placeholder="Location" required value="{{ v.location if v }}"></div>
 </form>
 {% endblock %}
