@@ -60,3 +60,11 @@ def _venue_from_form(name, location, capacity, description, image_url, hourly_ra
 @router.get("/venues")
 def venues(request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
     return render(request, "admin/venues.html", user, venues=db.scalars(select(Venue).order_by(Venue.id)).all(), v=None)
+
+
+@router.get("/venues/{vid}/edit")
+def venue_edit(vid: int, request: Request, user=Depends(admin_only), db: Session = Depends(get_db)):
+    v = db.get(Venue, vid)
+    if v is None:
+        raise HTTPException(404, "Venue not found")
+    return render(request, "admin/venues.html", user, venues=db.scalars(select(Venue).order_by(Venue.id)).all(), v=v)
