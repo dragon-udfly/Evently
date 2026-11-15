@@ -30,4 +30,9 @@ class NotificationAgent(Agent):
         c = msg.content
         self._add(db, f"Booking for {c['event']} cancelled. Refund {c['refund']:.2f} ({c['pct']}%).", c["user_id"])
 
-    
+    def h_event_cancelled(self, db: Session, msg: Message):
+        c = msg.content
+        if "user_id" in c:
+            self._add(db, f"{c['event']} was cancelled. Full refund of {c['refund']:.2f} issued.", c["user_id"])
+
+   
