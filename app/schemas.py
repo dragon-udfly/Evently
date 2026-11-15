@@ -67,3 +67,7 @@ class HireIn(BaseModel):
     purpose: str = Field(min_length=3, max_length=300)
 
 
+class ScanIn(BaseModel):
+    code: str = Field(min_length=1, max_length=100)
+    event_id: int
+
