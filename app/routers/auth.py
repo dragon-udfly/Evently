@@ -41,3 +41,7 @@ def register(request: Request, name: str = Form(""), email: str = Form(""), pass
     return go("/")
 
 
+@router.get("/login")
+def login_page(request: Request, user=Depends(get_current_user)):
+    return render(request, "login.html", user)
+
