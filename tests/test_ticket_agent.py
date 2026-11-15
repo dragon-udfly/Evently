@@ -1,4 +1,4 @@
-from app.models import Ticket
+from app.models import Notification, Ticket
 from tests.helpers import book, make_event, make_user, make_venue, send
 
 
@@ -36,4 +36,12 @@ def test_checkin_closed_before_window_opens(db):
 	ev, _, _, code = setup_ticket(db, hours_ahead=100)
 	r = scan(db, code, ev)
 	assert r.performative == "REFUSE" and r.content["verdict"] == "too_early"
+
+
+def test_repeated_scans_raise_suspicious_alert_for_admin(db):
+	ev, _, _, code = setup_ticket(db)
+	for _ in range(3):
+		scan(db, code, ev)
+	alerts = db.query(Notification).filter_by(audience="admin").all()
+	assert len(alerts) == 1 and "Suspicious" in alerts[0].message
 
