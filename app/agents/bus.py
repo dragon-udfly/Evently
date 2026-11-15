@@ -35,4 +35,18 @@ class MessageBus:
             return None
         return self._deliver(db, msg.receiver, msg)
 
-    
+    def _deliver(self, db: Session, name: str, msg: Message) -> Message | None:
+        agent = self.agents.get(name)
+        if agent is None:
+            reply = Message.make("Bus", msg.sender, "FAILURE", msg.conversation_id, msg.id,
+                                 reason=f"unknown receiver '{name}'")
+        else:
+            try:
+                reply = agent.receive(db, msg)
+            except Exception as exc:  
+                db.rollback()
+                reply = Message.make(name, msg.sender, "FAILURE", msg.conversation_id, msg.id,
+                                     reason=f"{type(exc).__name__}: {exc}")
+        if reply is not None:
+            self._log(db, reply)
+        return reply
