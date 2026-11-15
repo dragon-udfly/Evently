@@ -44,4 +44,8 @@ class NotificationAgent(Agent):
         c = msg.content
         self._add(db, f"Your seat hold for {c['event']} expired and was passed on.", c["user_id"])
 
+    def h_hire_confirmed(self, db: Session, msg: Message):
+        c = msg.content
+        self._add(db, f"Hire #{c['hire_id']} of {c['venue']} confirmed automatically. Price {c['price']:.2f}.", c["user_id"])
+
     
